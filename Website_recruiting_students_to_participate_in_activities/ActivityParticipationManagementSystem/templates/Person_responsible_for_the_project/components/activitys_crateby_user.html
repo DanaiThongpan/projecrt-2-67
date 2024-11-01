@@ -1,0 +1,68 @@
+<div class="pt-24 px-8 p-6 bg-gray-100">
+  <h1 class="text-2xl font-light text-gray-900 mb-2 text-center">ประวัติการประกาศรับสมัคร</h1>
+</div>
+<main class="items-center px-6 py-15 p-16 pt-6">
+    <table class="w-full table-auto">
+      <thead>
+        <tr>
+          <th class="border px-4 py-2">วันที่สร้าง</th>
+          <th class="border px-4 py-2">รูปกิจกรรม</th>
+          <th class="border px-4 py-2">ชื่อกิจกรรม</th>
+          <th class="border px-4 py-2">ประเภทกิจกรรม</th>
+          <th class="border px-4 py-2">คณะผู้รับผิดชอบ</th>
+          <th class="border px-4 py-2">สถานะ</th>
+          <th class="border px-4 py-2">จัดการ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in db %}
+        <tr>
+          <td class="border px-4 py-2">{{ i.start_date_create_activity }}</td>
+          <td class="border px-4 py-3 flex justify-around">
+            {% if i.img_activity %}
+            <img src="{{ i.img_activity.url }}" alt="Activity Image" class="w-16 h-16">
+            {% else %}
+            <span>ไม่มีรูปภาพ</span>
+            {% endif %}
+          </td>
+          <td class="border px-4 py-2 text-xl">
+            <a href="/Person_responsible_for_the_project/activity/{{ i.id }}/">{{ i.activity_name }}</a>
+            <div class="text-sm">
+              รับจำนวน {{ i.target_number }} คน
+            </div>
+          </td>
+          <td class="border px-4 py-2 text-xl">
+            ด้านที่ {{ i.activity_type }}
+            <div class="text-sm">
+              จำนวนรับ / เหลือ: 
+            </div>
+          </td>
+          <td class="border px-4 py-2">{{ i.user.faculty }}</td>
+          <td class="border px-4 py-2">
+            {% if i.target_number > i.registered_number %}
+            กำลังรับสมัคร
+            {% else %}
+            ปิดรับสมัคร
+            {% endif %}
+          </td>
+          <td class="border px-4 py-2">
+            <a href="update_activity/{{ i.id }}/" class="text-blue-500 hover:text-blue-700">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit">
+                <path d="M18 2l4 4-10 10h-4v-4L18 2z" />
+                <path d="M2 20v2h2l10-10" />
+              </svg>
+            </a>
+            <a href="delete_activity/{{ i.id }}/" class="text-red-500 hover:text-red-700">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2">
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</main>

@@ -1,0 +1,78 @@
+{% load crispy_forms_tags %}
+<div class="w-full pt-10 p-10 bg-gray-100 text-xl">
+    <h1 class="text-2xl text-center">รายละเอียดประกาศรับสมัคร</h1>
+</div>
+
+<body class="w-full bg-white">
+    <div class="container mx-auto pt-6">
+        <table class="w-full table-auto">
+            <thead>
+                {% if i.img_activity %}
+                <tr>
+                    <th class="border px-2 py-3 flex justify-center">
+                        <img src="{{i.img_activity.url}}" alt="Recruitment_announcer/media/activity/images" class="object-cover rounded-lg shadow-md" width="250" height="250">
+                    </th>
+                </tr>
+                {% endif %}
+            </thead>
+        </table>
+        <table class="w-full table-auto mt-4">
+            <thead>
+                <tr>
+                    <td class="border px-4 py-3 text-lg">
+                        <p><strong>ชื่อกิจกรรม:</strong> {{i.activity_name}}</p>
+                        <p><strong>เปิดให้ลงทะเบียนถึงวันที่:</strong> {{i.due_date_registration}}</p>
+                        <p><strong>ผู้รับผิดชอบโครงการ:</strong> {{i.user.title}} {{i.user.user.first_name}} {{i.user.user.last_name}}</p>
+                        <p><strong>จำนวนเป้าหมาย:</strong> {{i.max_participants}}</p>
+                        <p><strong>สถานที่จัดกิจกรรม:</strong> {{i.place}}</p>
+                        <p><strong>ด้านที่:</strong> {{i.activity_type}}</p>
+                        <p><strong>หน่วยกิตกิจกรรม:</strong> {{i.credit}}</p>
+                        <p><strong>คำอธิบาย:</strong> {{i.description}}</p>
+                        <div class="text-center mt-6">
+                            {% if existing_registration %}
+                                <!-- แสดงปุ่มยกเลิกการสมัคร ถ้ามีการลงทะเบียนอยู่แล้ว -->
+                                <form id="activity-form" action="" method="post" onsubmit="return confirmCancellation();">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700 focus:outline-none focus:bg-red-700">
+                                        ยกเลิกการเข้าร่วมกิจกรรม
+                                    </button>
+                                </form>
+                            {% elif i.max_participants == i.registered_count %}
+                                <!-- แสดงข้อความว่าผู้ลงทะเบียนครบแล้ว -->
+                                <button type="button" class="w-full px-4 py-2 bg-red-500 text-white rounded-md cursor-not-allowed">
+                                    ผู้ลงทะเบียนครบแล้ว
+                                </button>
+                            {% elif i.is_registration_open != True %}
+                                <!-- แสดงข้อความว่าผู้ลงทะเบียนครบแล้ว -->
+                                <button type="button" class="w-full px-4 py-2 bg-red-500 text-white rounded-md cursor-not-allowed">
+                                    ปิดรับสมัครแล้ว
+                                </button>
+                            {% else %}
+                                <!-- แสดงปุ่มสมัคร ถ้ายังไม่เต็มและยังไม่ได้ลงทะเบียน -->
+                                <form id="activity-form" action="" method="post" onsubmit="return confirmRegistration();">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">
+                                        ลงทะเบียนเข้าร่วมกิจกรรม
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="border text-center pt-6 p-2 py-2 mt-6 mx-2">
+        <h2 class="text-xl font-bold">วันที่จัดกิจกรรม</h2>
+        <p>{{i.start_date_activity}} - {{i.due_date_activity}}</p>
+        <br>
+        <h2 class="text-xl font-bold">นักศึกษาที่ลงทะเบียน</h2>
+        {% if registered_students %}
+            {% for student in registered_students %}
+                <p>{{ student.student.user.username }} {{ student.student.title }} {{ student.student.user.first_name }} {{ student.student.user.last_name }} - {{ student.student.faculty }}</p>
+            {% endfor %}
+        {% else %}
+            <p>ยังไม่มีนักศึกษาลงทะเบียน {{existing_registration}}</p>
+        {% endif %}
+    </div>
+</body>

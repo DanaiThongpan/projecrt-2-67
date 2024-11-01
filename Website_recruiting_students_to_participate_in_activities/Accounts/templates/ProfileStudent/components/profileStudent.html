@@ -1,0 +1,48 @@
+{% load crispy_forms_tags %}
+<main class="flex justify-between items-center px-20 py-10 pt-24 h-screen ">
+    <div class="max-w-xs">
+        <img src="https://static.vecteezy.com/system/resources/previews/034/057/207/original/resume-icon-icon-for-web-design-isolated-on-white-background-vector.jpg" alt="Training Illustration" class="w-full h-full animate-float">
+    </div>
+    <div class="max-w-xl w-full bg-gray-100 p-8 shadow-lg rounded-lg animate-slide-in-left">
+        <h1 class="text-center text-2xl font-bold mb-4">ข้อมูลส่วนตัว</h1>
+        <div class="flex justify-center mb-4"> 
+            <div class="w-full max-w-md">
+                <div class="mb-4">
+                    <label for="id" class="block text-xl font-medium text-black-900">
+                        รหัสนักศึกษา : 
+                        <span class="text-gray-500">{{ student_detail.user.username }}</span>
+                    </label>
+                    <label for="id" class="block text-xl font-medium text-black-900">
+                        ชื่อ-สกุล: 
+                        <span class="text-gray-500">{{ student_detail.title }} {{ user_detail.first_name }} {{ user_detail.last_name }}</span>
+                    </label>
+                    <label for="id" class="block text-xl font-medium text-black-900">
+                        อีเมล: 
+                        <span class="text-gray-500">{{ user_detail.email }}</span>
+                    </label>
+                    <label for="id" class="block text-xl font-medium text-black-900">
+                        คณะ: 
+                        <span class="text-gray-500">{{ student_detail.faculty }}</span>
+                    </label>
+                    <label for="id" class="block text-xl font-medium text-black-900">
+                        ประเภท (ทุน-กยศ): 
+                        <span class="text-gray-500">{{ student_detail.type_Scholarship_or_Student_loan_fund }}</span>
+                    </label>
+                    <label for="id" class="block text-xl font-medium text-black-900">
+                        จำนวนหน่วยกิตที่ต้องการ: 
+                        <span class="text-gray-500">{{ student_detail.number_of_credits_required }}</span>
+                    </label>
+                    <label for="id" class="block text-xl font-medium text-black-900">
+                        จำนวนหน่วยกิตที่มี: 
+                        <span class="text-gray-500">{{ student_detail.number_of_credits_available }}</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <a href="/Accounts/updateprofileStudent/{{ student_detail.id }}/"
+                class="w-full px-4 py-2 bg-blue-400 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">แก้ไขข้อมูลส่วนตัว</a><br>
+        </div>
+    </div>
+</main>

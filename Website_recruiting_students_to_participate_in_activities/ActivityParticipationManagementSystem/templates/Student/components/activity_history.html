@@ -1,0 +1,28 @@
+<div class="w-full pt-10 p-10 bg-gray-100 text-xl">
+    <h1 class="text-2xl text-center">ประวัติการเข้าร่วมกิจกรรม</h1>
+</div>
+
+<table class="table-auto w-full">
+    <thead>
+        <tr>
+            <th class="px-4 py-2">ชื่อกิจกรรม</th>
+            <th class="px-4 py-2">วันที่เข้าร่วม</th>
+            <th class="px-4 py-2">สถานที่</th>
+            <th class="px-4 py-2">สถานะ</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for history in activity_history %}
+        <tr>
+            <td class="border px-4 py-2">{{ history.activity.activity_name }}</td>
+            <td class="border px-4 py-2">{{ history.registered_at|date:"d M Y" }}</td>
+            <td class="border px-4 py-2">{{ history.activity.place }}</td>
+            <td class="border px-4 py-2"></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3" class="text-center">ยังไม่มีประวัติการเข้าร่วมกิจกรรม</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

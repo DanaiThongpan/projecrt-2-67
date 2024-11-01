@@ -1,0 +1,66 @@
+<div class="w-full pt-10 p-10 bg-gray-100 text-xl">
+    <h1 class="text-2xl text-center">ตรวจสอบรายชื่อนักศึกษาที่เข้าร่วมกิจกรรม: {{ activity.activity_name }}</h1>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <h2>เลือกนักศึกษาที่เข้าร่วมกิจกรรม: {{ activity.activity_name }}</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>เลือก</th>
+                <th>รหัสนักศึกษา</th>
+                <th>ชื่อ</th>
+                <th>นามสกุล</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student_in_activity in students_in_activity %}
+            <tr>
+                <td>
+                    <input type="checkbox" name="student" value="{{ student_in_activity.student.id }}"
+                    {% if student_in_activity.is_approved %}checked{% endif %}>
+                </td>
+                <td>{{ student_in_activity.student.user.username }}</td>
+                <td>{{ student_in_activity.student.user.first_name }}</td>
+                <td>{{ student_in_activity.student.user.last_name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700">ยืนยันการอนุมัติ</button>
+</form>
+
+<!-- <form method="post">
+    {% csrf_token %}
+    <table class="table-auto w-full">
+        <thead>
+            <tr>
+                <th>เลือก</th>
+                <th>รหัสนักศึกษา</th>
+                <th>ชื่อ</th>
+                <th>นามสกุล</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students_in_activity %}
+            <tr>
+                <td>
+                    Checkbox ที่มีค่าเริ่มต้นเป็น checked
+                    <input type="checkbox" name="student" value="{{ student.student.id }}" checked>
+                </td>
+                <td>{{ student.student.user.username }}</td>
+                <td>{{ student.student.user.first_name }}</td>
+                <td>{{ student.student.user.last_name }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">ยังไม่มีนักศึกษาลงทะเบียนเข้าร่วมกิจกรรมนี้</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700">ยืนยันการเลือก</button>
+</form> -->
