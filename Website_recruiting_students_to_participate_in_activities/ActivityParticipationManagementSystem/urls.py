@@ -3,13 +3,16 @@ from ActivityParticipationManagementSystem.views import *
 from django.conf.urls.static import static
 from Website_recruiting_students_to_participate_in_activities import settings
 from django.contrib.auth.decorators import login_required
-
+from django.urls import path
 
 urlpatterns = [
     path('homeStudent/', homeStudent, name='homeStudent'),
     path('homePerson_responsible_for_the_project/', homePerson_responsible_for_the_project, name='homePerson_responsible_for_the_project'),
     path('homeStudent/activity/<int:id>/', activity, name='activity'),
     path('homeStudent/activity_history/', activity_history, name='activity_history'),
+
+    # URL สำหรับดาวน์โหลดไฟล์ CSV
+    path('download_csv/<int:activity_id>/', download_activity_csv, name='download_activity_csv'),
 
     path('create_activity/', create_activity, name='create_activity'),
     path('homePerson_responsible_for_the_project/activity2/<int:id>/', activity2, name="activity2"),
@@ -28,4 +31,4 @@ urlpatterns = [
     
     path('approve_credits/<int:activity_id>/', approve_credits, name='approve_credits'),
 
-    ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

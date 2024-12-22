@@ -61,4 +61,6 @@ class db_activity_adduser(models.Model):
     student = models.ForeignKey(User and UserStudent, on_delete=models.CASCADE, related_name='db_activity_adduser2')
     activity = models.ForeignKey(db_create_activity, on_delete=models.CASCADE, related_name='db_activity_adduser2')
     registered_at = models.DateTimeField(auto_now_add=True)
-    is_approved = models.BooleanField(default=True)  # ฟิลด์เพื่อเก็บสถานะการอนุมัติหน่วยกิต
+    is_approved = models.BooleanField(default=True)  # ฟิลด์เพื่อเก็บสถานะการอนุมัติหน่วยกิต ตรวจรายชื่อ
+
+

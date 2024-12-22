@@ -1,28 +1,50 @@
-<div class="w-full pt-10 p-10 bg-gray-100 text-xl">
-    <h1 class="text-2xl text-center">ประวัติการเข้าร่วมกิจกรรม</h1>
+<div class="pt-24 px-8 p-6 bg-gray-100">
+    <br>
+    <h1 class="text-2xl font-light text-gray-900 text-center">ประวัติการเข้าร่วมกิจกรรม</h1>
 </div>
 
-<table class="table-auto w-full">
+<div class="w-full bg-gray-100 h-screen">
+<table class="table-auto w-full rounded-sm border border-gray-200">
     <thead>
         <tr>
             <th class="px-4 py-2">ชื่อกิจกรรม</th>
             <th class="px-4 py-2">วันที่เข้าร่วม</th>
             <th class="px-4 py-2">สถานที่</th>
             <th class="px-4 py-2">สถานะ</th>
+            <th class="px-4 py-2">สถานะการเข้าร่วม</th>
         </tr>
     </thead>
-    <tbody>
-        {% for history in activity_history %}
+    <tbody class="bg-white">
+        {% for activity in activity_history %}
         <tr>
-            <td class="border px-4 py-2">{{ history.activity.activity_name }}</td>
-            <td class="border px-4 py-2">{{ history.registered_at|date:"d M Y" }}</td>
-            <td class="border px-4 py-2">{{ history.activity.place }}</td>
-            <td class="border px-4 py-2"></td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="3" class="text-center">ยังไม่มีประวัติการเข้าร่วมกิจกรรม</td>
+            <td class="border px-4 py-2 text-center">{{ activity.activity.activity_name }}</td>
+            <td class="border px-4 py-2">{{ activity.registered_at|date:"d M Y" }}</td>
+            <td class="border px-4 py-2">{{ activity.activity.place }}</td>
+
+            {% if not activity.activity.is_approved %}
+            <td class="border px-4 py-2 text-center">
+                <span class="bg-gray-500 text-white px-3 py-1 rounded">ยังไม่อนุมัติ</span>
+            </td>
+            {% else %}
+            <td class="border px-4 py-2 text-center">
+                <span class="bg-gray-500 text-white px-3 py-1 rounded">อนุมัติแล้ว</span>
+            </td>
+            {% endif %}
+            {% if not activity.is_approved and activity.activity.is_approved %}
+            <td class="border px-4 py-2 text-center">
+                <span class="bg-gray-500 text-white px-3 py-1 rounded">ไม่พบประวัติการเข้าร่วมกิจกรรม</span>
+            </td>
+            {% elif activity.is_approved and activity.activity.is_approved %}
+            <td class="border px-4 py-2 text-center">
+                <span class="bg-gray-500 text-white px-3 py-1 rounded">รายชื่อผ่านการรออนุมัติหน่วยกิตแล้ว</span>
+            </td>
+            {% else %}
+            <td class="border px-4 py-2 text-center">
+                <span class="bg-gray-500 text-white px-3 py-1 rounded">มีรายชื่อ รออนุมัติหน่วยกิต</span>
+            </td>
+            {% endif %}
         </tr>
         {% endfor %}
     </tbody>
 </table>
+</div>

@@ -128,9 +128,10 @@ def activity_history(request):
     # ดึงประวัติการเข้าร่วมกิจกรรมของผู้ใช้ที่ล็อกอินอยู่
     user = request.user
     activity_history = db_activity_adduser.objects.filter(student__user=user).select_related('activity')
-    
+
     return render(request, 'Student/activity_history.html', {
-        'activity_history': activity_history,
+        'activity_history' : activity_history,
+        'activity' : activity,
     })
 
 
@@ -162,6 +163,19 @@ def homePerson_responsible_for_the_project(request):
     elif activity_type == 'other':
         activities = db_create_activity.objects.filter(user=person_responsible, activity_type="6 ด้านกิจกรรมอื่นๆ")
 
+    for activity in activities:
+        # selected_activity = selected_activity(db_create_activity, id=activity)
+        if activity.is_approved:
+        # if ActivityPDF.objects.filter(activity=activity).exists():
+            messages.info(
+                request,
+                f"กิจกรรม '{activity.activity_name}' ได้รับการอนุมัติหน่วยกิตแแล้ว"
+            )
+
+                # selected_activity = get_object_or_404(db_create_activity, id=activity_id)
+            
+            # ตรวจสอบว่ายังไม่ได้รับการอนุมัติ
+        # if not selected_activity.is_approved:
     return render(request, 'Person_responsible_for_the_project/home.html', {
         'i': person_responsible, 
         'db': activities,
@@ -261,7 +275,7 @@ def check_student_list(request, activity_id):
             student_in_activity.save(update_fields=['is_approved'])
         
         # ส่งข้อความแจ้งเตือนว่าอนุมัติหน่วยกิตสำเร็จ
-        messages.success(request, "การอนุมัติหน่วยกิตเสร็จสมบูรณ์")
+        messages.success(request, "การตรวสอบรายชื่อ นศ ได้รับการอัปเดตแล้ว")
         
         # เปลี่ยนเส้นทางกลับไปที่หน้าแรก
         return redirect('homePerson_responsible_for_the_project')
@@ -270,6 +284,61 @@ def check_student_list(request, activity_id):
         'activity': activity,
         'students_in_activity': students_in_activity,
     })
+
+# import csv
+# from django.http import HttpResponse
+# from django.shortcuts import get_object_or_404
+# from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
+
+# def download_activity_csv(request, activity_id):
+#     # ดึงกิจกรรมที่ต้องการ
+#     activity = get_object_or_404(db_create_activity, id=activity_id)
+
+#     # ดึงข้อมูลนักศึกษาที่เข้าร่วมกิจกรรม
+#     students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
+
+#     # สร้าง response สำหรับดาวน์โหลดไฟล์ CSV
+#     response = HttpResponse(content_type='text/csv')
+#     response['Content-Disposition'] = f'attachment; filename="{activity.activity_name}_students.csv"'
+
+#     # เขียนข้อมูลลงในไฟล์ CSV
+#     writer = csv.writer(response)
+#     # writer.writerow(['รหัสนักศึกษา', 'หน่วยกิตที่ได้รับ'])
+
+#     for student in students_in_activity:
+#         writer.writerow([student.student.user.username, activity.credit])
+
+#     return response
+import csv
+from django.http import HttpResponse
+from django.utils.encoding import iri_to_uri  # สำหรับแปลงชื่อไฟล์เป็น URL-encoded
+from django.shortcuts import get_object_or_404
+from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
+
+def download_activity_csv(request, activity_id):
+    # ดึงกิจกรรมที่ต้องการ
+    activity = get_object_or_404(db_create_activity, id=activity_id)
+
+    # ดึงข้อมูลนักศึกษาที่เข้าร่วมกิจกรรม
+    students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
+
+    # กำหนดชื่อไฟล์ภาษาไทย
+    filename = f"รายชื่อผู้เข้าร่วม_{activity.activity_name}.csv"
+    encoded_filename = iri_to_uri(filename)  # แปลงชื่อไฟล์เป็น URL-encoded
+
+    # สร้าง response สำหรับดาวน์โหลดไฟล์ CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+
+    # เขียนข้อมูลลงในไฟล์ CSV
+    writer = csv.writer(response)
+    # writer.writerow(['รหัสนักศึกษา', 'ชื่อกิจกรรม', 'หน่วยกิตที่ได้รับ'])
+
+    for student in students_in_activity:
+        writer.writerow([student.student.user.username, activity.credit])
+
+    return response
+
 
 from .models import ActivityPDF, db_activity_adduser  # นำเข้าโมเดลที่คุณต้องการใช้
 from django.contrib import messages
@@ -293,7 +362,9 @@ def upload_pdf(request, activity_id):
         else:
             messages.error(request, "No file selected.")
             return redirect('homePerson_responsible_for_the_project')
-
+    # เพิ่มข้อความแจ้งเตือน
+    # messages.success(request, f"PDF สำหรับกิจกรรม '{activity.activity_name}' ถูกอัปโหลดเรียบร้อยแล้ว!")
+        
     return render(request, 'Person_responsible_for_the_project/home.html', {'activity': activity})
 
 def delete_pdf(request, pdf_id):
@@ -333,6 +404,10 @@ def generate_pdf(request, id):
     # สร้าง PDF document
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
     
+    pdf.title = ('แบบบันทึกการเข้าร่วมกิจกรรม ' + db_user.first().activity.activity_name)
+    # pdf.setTitle(pdf.title)
+    # pdf.setTitle('แบบบันทึกการเข้าร่วมกิจกรรม' + db_user.first().activity.activity_name)
+
     story = []
 
     # ระบุพาธฟอนต์ที่ถูกต้อง
@@ -437,23 +512,24 @@ def generate_registration_form(request, id):
     pdf.setFont("THSarabunNew", 14)
 
     # Set up the PDF document
-    pdf.setTitle("Activity Participation Form")
+    # pdf.setTitle("Activity Participation Form")
+    pdf.setTitle('แบบบันทึกการเข้าร่วมกิจกรรม ' + db_user.first().activity.activity_name)
 
     # T# Title
     pdf.drawCentredString(10.5 * cm, 28.5 * cm, "แบบบันทึกการเข้าร่วมกิจกรรมของนักศึกษามหาวิทยาลัยอุบลราชธานี")
 
     # ชื่อกิจกรรม (ภาษาไทย)
-    pdf.drawString(2 * cm, 27.5 * cm, "ชื่อกิจกรรม (ภาษาไทย):")
+    pdf.drawString(2 * cm, 27.5 * cm, "ชื่อกิจกรรม (ภาษาไทย) _________________________________________________________________________________")
     pdf.drawString(6.5 * cm, 27.5 * cm, db_user.first().activity.activity_name)
-    pdf.line(6.5 * cm, 27.3 * cm, 18 * cm, 27.3 * cm)
+    # pdf.line(6.5 * cm, 27.3 * cm, 18 * cm, 27.3 * cm)
 
     # ชื่อกิจกรรม (ภาษาอังกฤษ)
-    pdf.drawString(2 * cm, 26.7 * cm, "ชื่อกิจกรรม (ภาษาอังกฤษ):")  # ลดช่องไฟลงเล็กน้อย
+    pdf.drawString(2 * cm, 26.7 * cm, "ชื่อกิจกรรม (ภาษาอังกฤษ) _______________________________________________________________________________")  # ลดช่องไฟลงเล็กน้อย
     pdf.drawString(6.5 * cm, 26.7 * cm, "")
-    pdf.line(6.5 * cm, 26.5 * cm, 18 * cm, 26.5 * cm)
+    # pdf.line(6.5 * cm, 26.5 * cm, 18 * cm, 26.5 * cm)
 
     # หน่วยงานที่จัดกิจกรรม
-    pdf.drawString(2 * cm, 25.9 * cm, "หน่วยงานที่จัดกิจกรรม:")  # ลดช่องไฟลงเล็กน้อย
+    pdf.drawString(2 * cm, 25.9 * cm, "หน่วยงานที่จัดกิจกรรม")  # ลดช่องไฟลงเล็กน้อย
 
     # Draw checkboxes and text for "หน่วยงานที่จัดกิจกรรม"
     pdf.rect(7 * cm, 25.7 * cm, 0.4 * cm, 0.4 * cm)  # ลดช่องไฟลงเล็กน้อย
@@ -463,12 +539,12 @@ def generate_registration_form(request, id):
     pdf.rect(12 * cm, 25.7 * cm, 0.4 * cm, 0.4 * cm)  # ลดช่องไฟลงเล็กน้อย
     pdf.drawString(12.5 * cm, 25.8 * cm, "หน่วยงานภายนอก")
 
-    pdf.drawString(7 * cm, 25.1 * cm, "โปรดระบุชื่อหน่วยงาน:")  # ลดช่องไฟลงเล็กน้อย
-    pdf.line(10 * cm, 25.1 * cm, 18 * cm, 25.1 * cm)
+    pdf.drawString(7 * cm, 25.1 * cm, "โปรดระบุชื่อหน่วยงาน _____________________________________________________")  # ลดช่องไฟลงเล็กน้อย
+    # pdf.line(10 * cm, 25.1 * cm, 18 * cm, 25.1 * cm)
     pdf.drawString(11 * cm, 25.3 * cm, "")
 
     # ด้านกิจกรรม
-    pdf.drawString(2 * cm, 24.3 * cm, "ด้านกิจกรรม:")  # ลดช่องไฟลงเล็กน้อย
+    pdf.drawString(2 * cm, 24.3 * cm, "ด้านกิจกรรม")  # ลดช่องไฟลงเล็กน้อย
 
     # วิชาการที่ส่งเสริมคุณลักษณะบัณฑิต
     pdf.rect(4 * cm, 24.1 * cm, 0.4 * cm, 0.4 * cm)
@@ -493,7 +569,9 @@ def generate_registration_form(request, id):
 
     # ด้านกิจกรรมตาม TQF
     pdf.rect(14 * cm, 24.1 * cm, 0.4 * cm, 0.4 * cm)
-    pdf.drawString(10.5 * cm, 24.3 * cm, "ด้านกิจกรรมตาม TQF:")
+    pdf.drawString(12 * cm, 24.3 * cm, "ด้านกิจกรรม")
+    pdf.drawString(12 * cm, 23.8 * cm, "ตาม TQF")
+
     pdf.drawString(15 * cm, 24.3 * cm, "ด้านคุณธรรมจริยธรรม")
 
     # ด้านความรู้
@@ -511,84 +589,200 @@ def generate_registration_form(request, id):
 
     # ด้านการวิเคราะห์เชิงตัวเลข การสื่อสาร และการใช้เทคโนโลยี สารสนเทศ
     pdf.rect(14 * cm, 20.5 * cm, 0.4 * cm, 0.4 * cm)
-    pdf.drawString(15 * cm, 20.9 * cm, "ด้านการวิเคราะห์เชิงตัวเลข การสื่อสาร")
-    pdf.drawString(15 * cm, 20.4 * cm, "และการใช้เทคโนโลยี สารสนเทศ")
+    pdf.drawString(15 * cm, 20.5 * cm, "ด้านการวิเคราะห์เชิงตัวเลข การสื่อสาร")
+    pdf.drawString(15 * cm, 20.0 * cm, "และการใช้เทคโนโลยี สารสนเทศ")
 
     # จำนวนชั่วโมงที่เข้าร่วมกิจกรรม
-    pdf.drawString(2 * cm, 19.5 * cm, "จำนวนชั่วโมงที่เข้าร่วมกิจกรรม:")  # ปรับตำแหน่งขึ้นเล็กน้อย
-    pdf.drawString(6.7 * cm, 19.5 * cm, "")
-    pdf.line(6.5 * cm, 19.4 * cm, 7.5 * cm, 19.4 * cm)
-    pdf.drawString(8 * cm, 19.5 * cm, "ชั่วโมง")
+    pdf.drawString(2 * cm, 19.5 * cm, "จำนวนชั่วโมงที่เข้าร่วมกิจกรรม ________________")  # ปรับตำแหน่งขึ้นเล็กน้อย
+    pdf.drawString(7.5 * cm, 19.5 * cm, str(db_user.first().activity.credit))
+    # pdf.line(6.5 * cm, 19.4 * cm, 7.5 * cm, 19.4 * cm)
+    pdf.drawString(9 * cm, 19.5 * cm, "ชั่วโมง")
 
     # จำนวนผู้เข้าร่วม (เป้าหมาย)
-    pdf.drawString(10.5 * cm, 19.5 * cm, "จำนวนผู้เข้าร่วม (เป้าหมาย):")
-    pdf.drawString(15.5 * cm, 19.5 * cm, "")
-    pdf.line(15 * cm, 19.4 * cm, 16 * cm, 19.4 * cm)
-    pdf.drawString(16.5 * cm, 19.5 * cm, "คน")
+    pdf.drawString(12 * cm, 19.5 * cm, "จำนวนผู้เข้าร่วม (เป้าหมาย) ______________")
+    pdf.drawString(17 * cm, 19.5 * cm, str(db_user.first().activity.max_participants))
+    # pdf.line(15 * cm, 19.4 * cm, 16 * cm, 19.4 * cm)
+    pdf.drawString(18.2 * cm, 19.5 * cm, "คน")
 
-    # วันที่เริ่มและสิ้นสุดกิจกรรม
-    pdf.drawString(2 * cm, 18.5 * cm, "วันที่เริ่ม:")  # ปรับตำแหน่งขึ้นเล็กน้อย
-    pdf.drawString(4 * cm, 18.5 * cm, "")
-    pdf.line(3.8 * cm, 18.4 * cm, 6.5 * cm, 18.4 * cm)
-    pdf.drawString(7.5 * cm, 18.5 * cm, "เวลา")
-    pdf.drawString(8.5 * cm, 18.5 * cm, "")
-    pdf.line(8.4 * cm, 18.4 * cm, 10 * cm, 18.4 * cm)
+    # from babel.dates import format_date
+    from babel.dates import format_datetime
+    # from datetime import datetime
+    # ฟังก์ชันแปลงเดือนเป็นภาษาไทย
+    def format_date_thai(date):
+        months_thai = [
+            "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+            "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+        ]
+        day = date.day
+        month = months_thai[date.month]
+        year = date.year + 543  # แปลงปีเป็น พ.ศ.
+        return f"{day} {month} {year}"
 
-    pdf.drawString(11 * cm, 18.5 * cm, "วันที่สิ้นสุด:")
-    pdf.drawString(13 * cm, 18.5 * cm, "")
-    pdf.line(12.8 * cm, 18.4 * cm, 15.5 * cm, 18.4 * cm)
-    pdf.drawString(15.7 * cm, 18.5 * cm, "เวลา")
-    pdf.drawString(17.5 * cm, 18.5 * cm, "")
-    pdf.line(17.4 * cm, 18.4 * cm, 19 * cm, 18.4 * cm)
+    # ดึงวันที่จากฐานข้อมูล
+    start_date = db_user.first().activity.start_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
+    # แปลงวันที่เป็นภาษาไทย
+    formatted_date = format_date_thai(start_date)
+    formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+
+    # ใช้ใน PDF วันที่เริ่มและสิ้นสุดกิจกรรม
+    pdf.drawString(2 * cm, 18.5 * cm, "วันที่เริ่ม ________________")
+    pdf.drawString(3.5 * cm, 18.5 * cm, formatted_date)
+    pdf.drawString(6 * cm, 18.5 * cm, "เวลา ________________________")
+    pdf.drawString(8.5 * cm, 18.5 * cm, formatted_date_time)
+    # pdf.drawString(8.5 * cm, 18.5 * cm, "9.00")
+    # # วันที่เริ่มและสิ้นสุดกิจกรรม
+    # pdf.drawString(2 * cm, 18.5 * cm, "วันที่เริ่ม ________________")  # ปรับตำแหน่งขึ้นเล็กน้อย
+    # pdf.drawString(4 * cm, 18.5 * cm, str(db_user.first().activity.start_date_activity))
+    # # pdf.line(3.8 * cm, 18.4 * cm, 6.5 * cm, 18.4 * cm)
+    # pdf.drawString(6 * cm, 18.5 * cm, "เวลา ________________________")
+    # pdf.drawString(8.5 * cm, 18.5 * cm, "")
+    # # pdf.line(8.4 * cm, 18.4 * cm, 10 * cm, 18.4 * cm)
+
+    # ดึงวันที่จากฐานข้อมูล  
+    start_date = db_user.first().activity.due_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
+    formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+    
+    # แปลงวันที่เป็นภาษาไทย
+    formatted_date = format_date_thai(start_date)
+    pdf.drawString(11 * cm, 18.5 * cm, "วันที่สิ้นสุด __________________")
+    pdf.drawString(13 * cm, 18.5 * cm, formatted_date)
+    # pdf.line(12.8 * cm, 18.4 * cm, 15.5 * cm, 18.4 * cm)
+    pdf.drawString(15.7 * cm, 18.5 * cm, "เวลา ____________________")
+    pdf.drawString(17.5 * cm, 18.5 * cm, formatted_date_time)
+    # pdf.drawString(17.5 * cm, 18.5 * cm, "13.00")
+    # pdf.line(17.4 * cm, 18.4 * cm, 19 * cm, 18.4 * cm)
 
     # ผู้รับผิดชอบโครงการ และที่ปรึกษาโครงการ
-    pdf.drawString(2 * cm, 17.5 * cm, "ผู้รับผิดชอบโครงการ:")
-    pdf.drawString(6 * cm, 17.5 * cm, "")
-    pdf.line(5.8 * cm, 17.4 * cm, 10.5 * cm, 17.4 * cm)
+# Query ข้อมูลผู้รับผิดชอบโครงการ
+    responsible_person_t = db_user.first().activity.user.title
+    responsible_person_f = db_user.first().activity.user.user.first_name
+    responsible_person_l = db_user.first().activity.user.user.last_name
 
-    pdf.drawString(11 * cm, 17.5 * cm, "ที่ปรึกษาโครงการ:")
-    pdf.line(14.5 * cm, 17.4 * cm, 19 * cm, 17.4 * cm)
+    # สร้าง PDF และแสดงข้อมูล
+    pdf.drawString(2 * cm, 17.5 * cm, "ผู้รับผิดชอบโครงการ ___________________________________")
+    pdf.drawString(5 * cm, 17.5 * cm, responsible_person_t)
+    pdf.drawString(6 * cm, 17.5 * cm, responsible_person_f)
+    pdf.drawString(7 * cm, 17.5 * cm, responsible_person_l)
+    # pdf.line(5.8 * cm, 17.4 * cm, 10.5 * cm, 17.4 * cm)
+
+    pdf.drawString(11 * cm, 17.5 * cm, "ที่ปรึกษาโครงการ ______________________________________")
+    # pdf.line(14.5 * cm, 17.4 * cm, 19 * cm, 17.4 * cm)
 
     # สถานที่จัดกิจกรรม
-    pdf.drawString(2 * cm, 16.5 * cm, "สถานที่จัดกิจกรรม:")
+    pdf.drawString(2 * cm, 16.7 * cm, "สถานที่จัดกิจกรรม _________________________________________________________________________________________")
     pdf.drawString(5.5 * cm, 16.5 * cm, "")
-    pdf.line(5.3 * cm, 16.4 * cm, 20.5 * cm, 16.4 * cm)
+    # pdf.line(5.3 * cm, 16.4 * cm, 20.5 * cm, 16.4 * cm)
 
     # งบประมาณ
     pdf.drawString(2 * cm, 16 * cm, "งบประมาณ")
 
     # เงินงบประมาณแผ่นดิน
     pdf.rect(4 * cm, 15.8 * cm, 0.4 * cm, 0.4 * cm)
-    pdf.drawString(4.7 * cm, 15.8 * cm, "เงินงบประมาณแผ่นดิน")
-    pdf.line(9.5 * cm, 15.8 * cm, 11.5 * cm, 15.8 * cm)
+    pdf.drawString(4.7 * cm, 15.8 * cm, "เงินงบประมาณแผ่นดิน _____________________________")
+    # pdf.line(9.5 * cm, 15.8 * cm, 11.5 * cm, 15.8 * cm)
+
+    # จำนวนเงิน
+    # pdf.rect(4 * cm, 15.8 * cm, 0.4 * cm, 0.4 * cm)
+    pdf.drawString(13 * cm, 15.8 * cm, "จำนวนเงิน _______________________")
+    # pdf.line(17 * cm, 15.8 * cm, 15 * cm, 15.8 * cm)
+
+    # บาท
+    # pdf.rect(4 * cm, 15.8 * cm, 0.4 * cm, 0.4 * cm)
+    pdf.drawString(18.5 * cm, 15.8 * cm, "บาท")
+    # pdf.line(17 * cm, 15.8 * cm, 15 * cm, 15.8 * cm)
 
     # เงินรายได้มหาวิทยาลัย
     pdf.rect(4 * cm, 15 * cm, 0.4 * cm, 0.4 * cm)
-    pdf.drawString(4.7 * cm, 15 * cm, "เงินรายได้มหาวิทยาลัย")
-    pdf.line(9.5 * cm, 15 * cm, 11.5 * cm, 15 * cm)
+    pdf.drawString(4.7 * cm, 15 * cm, "เงินรายได้มหาวิทยาลัย _____________________________")
+    # pdf.line(9.5 * cm, 15 * cm, 11.5 * cm, 15 * cm)
+
+    # จำนวนเงิน
+    # pdf.rect(4 * cm, 15 * cm, 0.4 * cm, 0.4 * cm)
+    pdf.drawString(13 * cm, 15 * cm, "จำนวนเงิน _______________________")
+    # pdf.line(17 * cm, 15 * cm, 15 * cm, 15 * cm)
+
+    # บาท
+    # pdf.rect(4 * cm, 15 * cm, 0.4 * cm, 0.4 * cm)
+    pdf.drawString(18.5 * cm, 15 * cm, "บาท")
+    # pdf.line(17 * cm, 15 * cm, 15 * cm, 15 * cm)
 
     # เงินรายได้อื่นๆ (โปรดระบุ)
     pdf.rect(4 * cm, 14.2 * cm, 0.4 * cm, 0.4 * cm)
-    pdf.drawString(4.7 * cm, 14.2 * cm, "เงินรายได้อื่นๆ (โปรดระบุ)")
-    pdf.line(9.5 * cm, 14.2 * cm, 18.5 * cm, 14.2 * cm)
+    pdf.drawString(4.7 * cm, 14.2 * cm, "เงินรายได้อื่นๆ (โปรดระบุ) __________________________")
+    # pdf.line(9.5 * cm, 14.2 * cm, 11.5 * cm, 14.2 * cm)
+
+    # จำนวนเงิน
+    # pdf.rect(4 * cm, 14.2 * cm, 0.4 * cm, 0.4 * cm)
+    pdf.drawString(13 * cm, 14.2 * cm, "จำนวนเงิน _______________________")
+    # pdf.line(17 * cm, 14.2 * cm, 15 * cm, 14.2 * cm)
+
+   # บาท
+    # pdf.rect(4 * cm, 14.2 * cm, 0.4 * cm, 0.4 * cm)
+    pdf.drawString(18.5 * cm, 14.2 * cm, "บาท")
+    # pdf.line(17 * cm, 14.2 * cm, 15 * cm, 14.2 * cm)
 
     # คำอธิบายเกี่ยวกับกิจกรรม
-    pdf.drawString(2 * cm, 13.7 * cm, "คำอธิบายเกี่ยวกับกิจกรรม")
-    pdf.line(2 * cm, 13.2 * cm, 18 * cm, 13.2 * cm)
-    pdf.line(2 * cm, 12.7 * cm, 18 * cm, 12.7 * cm)
-    pdf.line(2 * cm, 12.2 * cm, 18 * cm, 12.2 * cm)
+    pdf.drawString(2 * cm, 13.5 * cm, "คำอธิบายเกี่ยวกับ")
+    pdf.drawString(2 * cm, 13.1 * cm, "กิจกรรม")
+    pdf.drawString(6 * cm, 13.1 * cm, "________________________________________________________________________________")
+    pdf.drawString(6 * cm, 12.4 * cm, "________________________________________________________________________________")
+    pdf.drawString(6 * cm, 11.7 * cm, "________________________________________________________________________________")
+    # pdf.line(6 * cm, 13.2 * cm, 18 * cm, 13.2 * cm)
+    # pdf.line(6 * cm, 12.5 * cm, 18 * cm, 12.5 * cm)
+    # pdf.line(6 * cm, 11.8 * cm, 18 * cm, 11.8 * cm)
 
     # รายชื่อนักศึกษาที่เข้าร่วม (ต่อท้ายคำอธิบาย)
     pdf.drawString(2 * cm, 11.5 * cm, "รายชื่อนักศึกษาที่เข้าร่วม")
-    pdf.drawString(2 * cm, 11 * cm, "(กรุณาระบุ ชื่อ-สกุล คณะ รหัสนักศึกษา หมายเลขติดต่อให้ครบถ้วน)")
-    pdf.line(2 * cm, 10.5 * cm, 18 * cm, 10.5 * cm)
-    pdf.line(2 * cm, 10 * cm, 18 * cm, 10 * cm)
-    pdf.line(2 * cm, 9.5 * cm, 18 * cm, 9.5 * cm)
+    pdf.drawString(2 * cm, 11 * cm, "(กรุณาระบุ ชื่อ-สกุล คณะ")
+    pdf.drawString(2 * cm, 10.5 * cm, "รหัสนักศึกษา หมายเลขติดต่อ")
+    pdf.drawString(2 * cm, 10 * cm, "ให้ครบถ้วน)")
+    pdf.drawString(6 * cm, 11 * cm, "________________________________________________________________________________")
+    pdf.drawString(6 * cm, 10.3 * cm, "________________________________________________________________________________")
+    pdf.drawString(6 * cm, 9.6 * cm, "________________________________________________________________________________")
+    # pdf.line(6 * cm, 11.1 * cm, 18 * cm, 11.1 * cm)
+    # pdf.line(6 * cm, 10.4 * cm, 18 * cm, 10.4 * cm)
+    # pdf.line(6 * cm, 9.7 * cm, 18 * cm, 9.7 * cm)
 
     # หมายเหตุ
-    pdf.drawString(2 * cm, 8.5 * cm, "หมายเหตุ: โปรดแนบหลักฐานการเข้าร่วมกิจกรรม เช่น สําเนาโครงการ หนังสือเชิญ กําหนดการ รูปถ่าย เป็นต้น")
-    pdf.drawString(2 * cm, 8 * cm, "กรณีมีจํานวนนักศึกษาที่เข้าร่วมจํานวนมาก ให้แนบรายชื่อนักศึกษาพร้อมแบบบันทึกและชื่อรับรองทุกแผ่น")
-    (2 * cm, 4.5 * cm, "กรณีมีจํานวนนักศึกษาที่เข้าร่วมจํานวนมาก ให้แนบรายชื่อนักศึกษาพร้อมแบบบันทึกและชื่อรับรองทุกแผ่น")
+    pdf.drawString(5 * cm, 9 * cm, "หมายเหตุ : โปรดแนบหลักฐานการเข้าร่วมกิจกรรม เช่น สําเนาโครงการ หนังสือเชิญ กําหนดการ รูปถ่าย เป็นต้น")
+    pdf.drawString(6.4 * cm, 8.5 * cm, ": กรณีมีจํานวนนักศึกษาที่เข้าร่วมจํานวนมาก ให้แนบรายชื่อนักศึกษาพร้อมแบบบันทึกและชื่อรับรองทุกแผ่น")
+    # pdf.drawString(6.3 * cm, 5.5 * cm, ": กรณีมีจํานวนนักศึกษาที่เข้าร่วมจํานวนมาก ให้แนบรายชื่อนักศึกษาพร้อมแบบบันทึกและชื่อรับรองทุกแผ่น")
+
+    pdf.drawString(4 * cm, 7.5 * cm, "ข้าพเจ้าขอรับรองว่าให้เข้าร่วมกิจกรรม ตามวัน เวลา และสถานที่ที่กล่าวจริง จึงเรียบมาเพื่อโปรดพิจารณา")
+    pdf.drawString(4 * cm, 6.5 * cm, "(ลงชื่อ) _________________")
+    pdf.drawString(8 * cm, 6.5 * cm, "ผู้ยื่นคำร้อง")
+    pdf.drawString(12 * cm, 6.5 * cm, "(ลงชื่อ) ___________________ ผู้รับรองกิจกรรม")
+    pdf.drawString(13 * cm, 6.5 * cm, responsible_person_t)
+    pdf.drawString(14 * cm, 6.5 * cm, responsible_person_f)
+    pdf.drawString(15 * cm, 6.5 * cm, responsible_person_l)
+    # pdf.drawString(16 * cm, 6.5 * cm, "ผู้รับรองกิจกรรม")
+    pdf.drawString(4.8 * cm, 6 * cm, "( __________________ )")
+
+    pdf.drawString(12.8 * cm, 6 * cm, "( ___________________ )")
+    pdf.drawString(13 * cm, 6 * cm, responsible_person_t)
+    pdf.drawString(14 * cm, 6 * cm, responsible_person_f)
+    pdf.drawString(15 * cm, 6 * cm, responsible_person_l)
+
+    pdf.drawString(4.2 * cm, 5.5 * cm, "วันที่ ___________________")
+    pdf.drawString(12.2 * cm, 5.5 * cm, "วันที่ ____________________")
+    pdf.drawString(13.5 * cm, 5.5 * cm, formatted_date)
+    pdf.rect(2 * cm, 1 * cm, 6 * cm, 4 * cm)
+    pdf.rect(8 * cm, 1 * cm, 6 * cm, 4 * cm)
+    pdf.rect(14 * cm, 1 * cm, 6 * cm, 4 * cm)
+
+    pdf.drawString(2.5 * cm, 3.5 * cm, "(ลงชื่อ) _____________________")
+    pdf.drawString(3 * cm, 3 * cm, "( _______________________ )")
+    pdf.drawString(4 * cm, 2.4 * cm, "ผู้ตรวจสอบข้อมูล")
+    pdf.drawString(2.5 * cm, 1.5 * cm, "วันที่ _______________________")
+
+    pdf.drawString(8.2 * cm, 3.5 * cm, "คณะกรรมการพิจารณาแล้วเห็นสมควร")
+    pdf.drawString(8.2 * cm, 3 * cm, "อนุมัติให้ค่าหน่วยกิจกรรมดังกล่าว")
+    pdf.drawString(8.3 * cm, 2.4 * cm, "จำนวน _____________ หน่วยกิจกรรม")
+
+    pdf.drawString(16.5 * cm, 4.3 * cm, "อนุมัติ")
+    pdf.drawString(14.7 * cm, 3.5 * cm, "____________________________")
+    pdf.drawString(14.5 * cm, 3 * cm, "( ____________________________ )")
+    pdf.drawString(14.5 * cm, 1.5 * cm, "วันที่ _______________________")
 
     # Save the PDF
     pdf.showPage()
@@ -606,8 +800,29 @@ def generate_registration_form(request, id):
 
 
 def homeFacultyStaff(request):
-    activity = db_create_activity.objects.all()
+    # person_responsible = get_object_or_404(UserPerson_responsible_for_the_project, user=request.user)
     
+        # รับค่าประเภทกิจกรรมจาก URL parameter
+    activity_type = request.GET.get('activity_type', 'all')
+
+    # ตรวจสอบว่าผู้ใช้เลือกประเภทกิจกรรมอะไร และกรองข้อมูล
+    if activity_type == 'all':
+        activities = db_create_activity.objects.filter()
+    elif activity_type == 'academic':
+        activities = db_create_activity.objects.filter(activity_type="1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์")
+    elif activity_type == 'sport':
+        activities = db_create_activity.objects.filter(activity_type="2 ด้านกีฬาหรือการส่งเสริมสุขภาพ")
+    elif activity_type == 'environment':
+        activities = db_create_activity.objects.filter(activity_type="3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม")
+    elif activity_type == 'moral':
+        activities = db_create_activity.objects.filter(activity_type="4 ด้านเสริมสร้างคุณธรรมและจริยธรรม")
+    elif activity_type == 'art_culture':
+        activities = db_create_activity.objects.filter(activity_type="5 ด้านส่งเสริมศิลปะและวัฒนธรรม")
+    elif activity_type == 'other':
+        activities = db_create_activity.objects.filter(activity_type="6 ด้านกิจกรรมอื่นๆ")
+
+    # activity = db_create_activity.objects.all()
+            
     # ตรวจสอบว่ามีการกดปุ่มอนุมัติหรือไม่
     if request.method == 'POST':
         if 'approve_activity' in request.POST:
@@ -626,9 +841,9 @@ def homeFacultyStaff(request):
 
                 selected_activity.is_approved = True  # อัปเดตสถานะการอนุมัติ
                 selected_activity.save()
-                messages.success(request, "นักศึกษาที่ได้รับการอนุมัติในกิจกรรมนี้ได้รับเครดิตแล้ว")
-            else:
-                messages.warning(request, "กิจกรรมนี้ได้รับการอนุมัติแล้ว")
+            #     messages.success(request, "นักศึกษาที่ได้รับการอนุมัติในกิจกรรมนี้ได้รับเครดิตแล้ว")
+            # else:
+            #     messages.warning(request, "กิจกรรมนี้ได้รับการอนุมัติแล้ว")
 
         elif 'cancel_approval' in request.POST:
             activity_id = request.POST.get('cancel_approval')
@@ -646,12 +861,19 @@ def homeFacultyStaff(request):
 
                 selected_activity.is_approved = False  # ยกเลิกสถานะการอนุมัติ
                 selected_activity.save()
-                messages.success(request, "ยกเลิกการอนุมัติเรียบร้อยแล้ว")
-            else:
-                messages.warning(request, "กิจกรรมนี้ยังไม่ได้รับการอนุมัติ")
+            #     messages.success(request, "ยกเลิกการอนุมัติเรียบร้อยแล้ว")
+            # else:
+            #     messages.warning(request, "กิจกรรมนี้ยังไม่ได้รับการอนุมัติ")
+        # ตรวจสอบกิจกรรมที่มีการอัปโหลด PDF
+    for activity in activities:
+        if ActivityPDF.objects.filter(activity=activity).exists():
+            messages.info(
+                request,
+                f"กิจกรรม '{activity.activity_name}' มีการอัปโหลด PDF เข้ามาแล้ว."
+            )
 
     return render(request, 'FacultyStaff/home.html', {
-        'db': activity,
+        'db': activities,
     })
 
 from django.http import JsonResponse

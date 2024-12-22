@@ -122,13 +122,13 @@
                                     </span>
                                 </td>
                                 <td class="px-5 border border-gray-300 py-5 border-b border-gray-200 bg-white text-sm text-center">
-                                    {% if messages %}
+                                    <!-- {% if messages %}
                                         <ul class="messages">
                                         {% for message in messages %}
                                             <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                                         {% endfor %}
                                         </ul>
-                                    {% endif %}
+                                    {% endif %} -->
                                     {% if i.pdf_files.all %}
                                     <!-- ลิงก์เพื่อดาวน์โหลด PDF -->
                                         <a href="{{ i.pdf_files.first.pdf_file.url }}" target="_blank" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700">ดาวน์โหลด PDF</a>

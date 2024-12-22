@@ -72,9 +72,9 @@
                                 <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">
                                     เอกสารแนบ
                                 </th> -->
-                                <!-- <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    จัดการ
-                                </th> -->
+                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    ดาวน์โหลด
+                                </th>
                                 <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">
                                     อนุมัติ
                                 </th>
@@ -123,6 +123,12 @@
                                     <a href="delete_activity/{{ i.id }}/" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 mx-1">ลบ</a>
                                 </td> -->
                                 <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                                    <a href="{% url 'download_activity_csv' i.id %}" class="text-blue-500 hover:underline">
+                                        ดาวน์โหลดไฟล์รายชื่อ, เพิ่มหน่วยกิต
+                                    </a>
+                                </td>
+                                
+                                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
                                     <!-- <a href="{% url 'approve_credits' i.id %}" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-blue-700 mx-1">อนุมัติ</a><br>
                                     <br>
                                     {% if messages %}
@@ -138,7 +144,7 @@
                                             <button type="submit" name="approve_activity" value="{{ i.id }}" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-blue-700 mx-1">อนุมัติ</button>
                                         </form>
                                     {% else %}
-                                        <span class="bg-gray-500 text-white px-3 py-1 rounded">อนุมัติแล้ว</span>
+                                        <!-- <span class="bg-gray-500 text-white px-3 py-1 rounded">อนุมัติแล้ว</span> -->
                                         <form method="post">
                                             {% csrf_token %}
                                             <button type="submit" name="cancel_approval" value="{{ i.id }}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 mx-1">ยกเลิกอนุมัติ</button>

@@ -65,6 +65,15 @@
             // ตรวจสอบการเลื่อนหน้าจอทุกครั้งที่มีการเลื่อน
             window.addEventListener("scroll", checkScroll);
         });
+
+        function confirmRegistration() {
+            return confirm("คุณต้องการยืนยันรายชื่อใช่หรือไม่?");
+        }
+
+        function confirmCancellation() {
+            return confirm("คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้ใช่หรือไม่?");
+        }
+
     </script>
 </head>
 <body>
