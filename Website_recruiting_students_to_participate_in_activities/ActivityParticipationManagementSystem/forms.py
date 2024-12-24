@@ -13,6 +13,7 @@ class forms_create_activity(forms.ModelForm):
         model = db_create_activity
         fields = [
             'img_activity',
+            'semester',
             'activity_name',
             'activity_type',
             # 'start_date_create_activity',

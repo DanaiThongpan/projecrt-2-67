@@ -2,6 +2,7 @@ from django.db import models, transaction
 from Accounts.models import UserStudent, UserPerson_responsible_for_the_project, User
 from django.core.exceptions import ValidationError
 from django.utils import timezone  # สำหรับเช็คเวลาปัจจุบัน
+from django.utils.timezone import now  # ใช้เพื่อดึงปีปัจจุบัน
 
 # สร้าง Manager สำหรับปิดรับสมัครอัตโนมัติ
 class ActivityManager(models.Manager):
@@ -35,10 +36,36 @@ class db_create_activity(models.Model):
     is_registration_open = models.BooleanField(default=True)
     is_approved = models.BooleanField(default=False)  # เพิ่มฟิลด์นี้เพื่อเก็บค่าสถานะอนุมัติ
     
+    current_year = now().year + 543
+        # กำหนด `choices` สำหรับ semester
+    SEMESTER_CHOICES = [
+        (f'1/{current_year}', f'1/{current_year}'),
+        (f'2/{current_year}', f'2/{current_year}'),
+        (f'3/{current_year}', f'3/{current_year}(ภาคฤดูร้อน)')
+    ]
+    # ฟิลด์ใหม่
+    announcement_date = models.DateTimeField(auto_now_add=True)  # วันที่ประกาศ (ตั้งค่าอัตโนมัติ)
+    semester = models.CharField(max_length=20, choices=SEMESTER_CHOICES, blank=True)  # ภาคการศึกษา
+
     # ผูก Manager ใหม่เข้ากับโมเดล
     objects = ActivityManager()
 
     def save(self, *args, **kwargs):
+        # ดึงปีปัจจุบันในรูปแบบ พ.ศ.
+        current_year = now().year + 543
+        # กำหนด `choices` สำหรับ semester
+        SEMESTER_CHOICES = [
+            (f'1/{current_year}', f'1/{current_year}'),
+            (f'2/{current_year}', f'2/{current_year}'),
+            (f'3/{current_year}', f'3/{current_year}')
+        ]
+        # กำหนด choices ให้กับฟิลด์ semester
+        self._meta.get_field('semester').choices = SEMESTER_CHOICES
+
+        # ตั้งค่า semester เริ่มต้นถ้ายังไม่มีค่า
+        if not self.semester:
+            self.semester = f'1/{current_year}'  # เริ่มต้นที่เทอม 1
+
         # ตรวจสอบว่าปิดการรับสมัครหรือยัง
         if self.registered_count >= self.max_participants or timezone.now() > self.due_date_registration:
             self.is_registration_open = False

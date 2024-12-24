@@ -3,7 +3,9 @@ from ActivityParticipationManagementSystem.models import ActivityPDF, db_create_
 
 # Register your models here.
 class DbCreateActivityAdmin(admin.ModelAdmin):
-    list_display = ('user', 
+    list_display = ('announcement_date',
+                    'semester',
+                    'user', 
                     'is_approved',
                     'img_activity', 
                     'activity_name', 
