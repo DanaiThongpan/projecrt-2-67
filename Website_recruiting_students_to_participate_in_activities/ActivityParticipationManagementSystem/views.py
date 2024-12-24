@@ -1,4 +1,3 @@
-# from pyexpat.errors import messages
 import base64
 from datetime import datetime
 import os
@@ -15,6 +14,8 @@ from django.contrib import messages
 from Website_recruiting_students_to_participate_in_activities import settings
 
 # Create your views here.
+
+#################################################################################################################################################
 
 # Student
 def is_student(user):
@@ -45,31 +46,6 @@ def homeStudent(request):
         'db': activity_all,
         'std': db,
     })
-
-# @login_required
-# @user_passes_test(is_student, login_url='login')
-# def activity(request, id):
-#     activity_get_id = get_object_or_404(db_create_activity, pk=id)
-#     user_student = get_object_or_404(UserStudent, user=request.user)
-#     existing_registration = db_activity_adduser.objects.filter(activity=activity_get_id, student=user_student).first()
-#     registered_students = db_activity_adduser.objects.filter(activity=activity_get_id).select_related('student')
-
-#     if request.method == 'POST':
-#         if existing_registration:
-#             # ถ้ามีการลงทะเบียนอยู่แล้ว ให้ยกเลิกการลงทะเบียน
-#             existing_registration.cancel_registration()
-#         else:
-#             # ถ้ายังไม่ได้ลงทะเบียนและยังมีที่ว่าง ให้ลงทะเบียน
-#             db_activity_adduser.objects.create(student=user_student, activity=activity_get_id)
-
-#         return redirect('activity', id=id)
-
-#     return render(request, 'Student/activity.html', {
-#         'i': activity_get_id,
-#         'existing_registration': existing_registration,
-#         'registered_students': registered_students,
-#         'd': user_student,
-#     })
 
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
@@ -134,6 +110,7 @@ def activity_history(request):
         'activity' : activity,
     })
 
+#################################################################################################################################################
 
 #Person_responsible_for_the_project
 def is_person_responsible_for_the_project(user):
@@ -164,18 +141,11 @@ def homePerson_responsible_for_the_project(request):
         activities = db_create_activity.objects.filter(user=person_responsible, activity_type="6 ด้านกิจกรรมอื่นๆ")
 
     for activity in activities:
-        # selected_activity = selected_activity(db_create_activity, id=activity)
         if activity.is_approved:
-        # if ActivityPDF.objects.filter(activity=activity).exists():
             messages.info(
                 request,
-                f"กิจกรรม '{activity.activity_name}' ได้รับการอนุมัติหน่วยกิตแแล้ว"
-            )
+                f"กิจกรรม '{activity.activity_name}' ได้รับการอนุมัติหน่วยกิตแแล้ว")
 
-                # selected_activity = get_object_or_404(db_create_activity, id=activity_id)
-            
-            # ตรวจสอบว่ายังไม่ได้รับการอนุมัติ
-        # if not selected_activity.is_approved:
     return render(request, 'Person_responsible_for_the_project/home.html', {
         'i': person_responsible, 
         'db': activities,
@@ -227,14 +197,9 @@ def update_activity2(request, id):
         'form': form,
         'i': activity_get_id,
     })
-# @login_required
-# @user_passes_test(is_person_responsible_for_the_project, login_url='login')
-# def activity_crateby_user2(request):
-#     s = db_create_activity.objects.all()  
-#     return render(request, 'Person_responsible_for_the_project/activitys_crateby_user.html', {
-#         'db':s
-#         })
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def delete_activity(request, id):
     activity = get_object_or_404(db_create_activity, pk=id)
     user_obj = UserPerson_responsible_for_the_project.objects.get(user=request.user)
@@ -245,6 +210,8 @@ def delete_activity(request, id):
 
     return redirect('homePerson_responsible_for_the_project')
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def activity2(request, id):
     activity_get_id = get_object_or_404(db_create_activity, pk=id)
     registered_students = db_activity_adduser.objects.filter(activity=activity_get_id).select_related('student')
@@ -254,6 +221,8 @@ def activity2(request, id):
         'registered_students': registered_students,
     })
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def check_student_list(request, activity_id):
     activity = get_object_or_404(db_create_activity, id=activity_id)
     
@@ -273,10 +242,7 @@ def check_student_list(request, activity_id):
             
             # อัปเดตสถานะ is_approved โดยไม่ตรวจสอบสถานะการรับสมัคร
             student_in_activity.save(update_fields=['is_approved'])
-        
-        # ส่งข้อความแจ้งเตือนว่าอนุมัติหน่วยกิตสำเร็จ
-        messages.success(request, "การตรวสอบรายชื่อ นศ ได้รับการอัปเดตแล้ว")
-        
+
         # เปลี่ยนเส้นทางกลับไปที่หน้าแรก
         return redirect('homePerson_responsible_for_the_project')
     
@@ -285,36 +251,14 @@ def check_student_list(request, activity_id):
         'students_in_activity': students_in_activity,
     })
 
-# import csv
-# from django.http import HttpResponse
-# from django.shortcuts import get_object_or_404
-# from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
-
-# def download_activity_csv(request, activity_id):
-#     # ดึงกิจกรรมที่ต้องการ
-#     activity = get_object_or_404(db_create_activity, id=activity_id)
-
-#     # ดึงข้อมูลนักศึกษาที่เข้าร่วมกิจกรรม
-#     students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
-
-#     # สร้าง response สำหรับดาวน์โหลดไฟล์ CSV
-#     response = HttpResponse(content_type='text/csv')
-#     response['Content-Disposition'] = f'attachment; filename="{activity.activity_name}_students.csv"'
-
-#     # เขียนข้อมูลลงในไฟล์ CSV
-#     writer = csv.writer(response)
-#     # writer.writerow(['รหัสนักศึกษา', 'หน่วยกิตที่ได้รับ'])
-
-#     for student in students_in_activity:
-#         writer.writerow([student.student.user.username, activity.credit])
-
-#     return response
 import csv
 from django.http import HttpResponse
 from django.utils.encoding import iri_to_uri  # สำหรับแปลงชื่อไฟล์เป็น URL-encoded
 from django.shortcuts import get_object_or_404
 from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def download_activity_csv(request, activity_id):
     # ดึงกิจกรรมที่ต้องการ
     activity = get_object_or_404(db_create_activity, id=activity_id)
@@ -339,10 +283,11 @@ def download_activity_csv(request, activity_id):
 
     return response
 
-
 from .models import ActivityPDF, db_activity_adduser  # นำเข้าโมเดลที่คุณต้องการใช้
 from django.contrib import messages
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def upload_pdf(request, activity_id):
     activity = get_object_or_404(db_create_activity, id=activity_id)
 
@@ -362,11 +307,11 @@ def upload_pdf(request, activity_id):
         else:
             messages.error(request, "No file selected.")
             return redirect('homePerson_responsible_for_the_project')
-    # เพิ่มข้อความแจ้งเตือน
-    # messages.success(request, f"PDF สำหรับกิจกรรม '{activity.activity_name}' ถูกอัปโหลดเรียบร้อยแล้ว!")
-        
+
     return render(request, 'Person_responsible_for_the_project/home.html', {'activity': activity})
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def delete_pdf(request, pdf_id):
     # ดึง PDF ที่ต้องการลบ
     pdf = get_object_or_404(ActivityPDF, id=pdf_id)
@@ -394,6 +339,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from .models import db_activity_adduser
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def generate_pdf(request, id):
     # ดึงข้อมูลจากฐานข้อมูลโดยใช้ activity_id
     db_user = db_activity_adduser.objects.filter(activity_id=id)
@@ -405,8 +352,6 @@ def generate_pdf(request, id):
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
     
     pdf.title = ('แบบบันทึกการเข้าร่วมกิจกรรม ' + db_user.first().activity.activity_name)
-    # pdf.setTitle(pdf.title)
-    # pdf.setTitle('แบบบันทึกการเข้าร่วมกิจกรรม' + db_user.first().activity.activity_name)
 
     story = []
 
@@ -497,6 +442,8 @@ from django.conf import settings
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def generate_registration_form(request, id):
 
     db_user = db_activity_adduser.objects.filter(activity_id=id)
@@ -604,9 +551,8 @@ def generate_registration_form(request, id):
     # pdf.line(15 * cm, 19.4 * cm, 16 * cm, 19.4 * cm)
     pdf.drawString(18.2 * cm, 19.5 * cm, "คน")
 
-    # from babel.dates import format_date
     from babel.dates import format_datetime
-    # from datetime import datetime
+
     # ฟังก์ชันแปลงเดือนเป็นภาษาไทย
     def format_date_thai(date):
         months_thai = [
@@ -629,14 +575,6 @@ def generate_registration_form(request, id):
     pdf.drawString(3.5 * cm, 18.5 * cm, formatted_date)
     pdf.drawString(6 * cm, 18.5 * cm, "เวลา ________________________")
     pdf.drawString(8.5 * cm, 18.5 * cm, formatted_date_time)
-    # pdf.drawString(8.5 * cm, 18.5 * cm, "9.00")
-    # # วันที่เริ่มและสิ้นสุดกิจกรรม
-    # pdf.drawString(2 * cm, 18.5 * cm, "วันที่เริ่ม ________________")  # ปรับตำแหน่งขึ้นเล็กน้อย
-    # pdf.drawString(4 * cm, 18.5 * cm, str(db_user.first().activity.start_date_activity))
-    # # pdf.line(3.8 * cm, 18.4 * cm, 6.5 * cm, 18.4 * cm)
-    # pdf.drawString(6 * cm, 18.5 * cm, "เวลา ________________________")
-    # pdf.drawString(8.5 * cm, 18.5 * cm, "")
-    # # pdf.line(8.4 * cm, 18.4 * cm, 10 * cm, 18.4 * cm)
 
     # ดึงวันที่จากฐานข้อมูล  
     start_date = db_user.first().activity.due_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
@@ -653,7 +591,7 @@ def generate_registration_form(request, id):
     # pdf.line(17.4 * cm, 18.4 * cm, 19 * cm, 18.4 * cm)
 
     # ผู้รับผิดชอบโครงการ และที่ปรึกษาโครงการ
-# Query ข้อมูลผู้รับผิดชอบโครงการ
+    # Query ข้อมูลผู้รับผิดชอบโครงการ
     responsible_person_t = db_user.first().activity.user.title
     responsible_person_f = db_user.first().activity.user.user.first_name
     responsible_person_l = db_user.first().activity.user.user.last_name
@@ -727,9 +665,6 @@ def generate_registration_form(request, id):
     pdf.drawString(6 * cm, 13.1 * cm, "________________________________________________________________________________")
     pdf.drawString(6 * cm, 12.4 * cm, "________________________________________________________________________________")
     pdf.drawString(6 * cm, 11.7 * cm, "________________________________________________________________________________")
-    # pdf.line(6 * cm, 13.2 * cm, 18 * cm, 13.2 * cm)
-    # pdf.line(6 * cm, 12.5 * cm, 18 * cm, 12.5 * cm)
-    # pdf.line(6 * cm, 11.8 * cm, 18 * cm, 11.8 * cm)
 
     # รายชื่อนักศึกษาที่เข้าร่วม (ต่อท้ายคำอธิบาย)
     pdf.drawString(2 * cm, 11.5 * cm, "รายชื่อนักศึกษาที่เข้าร่วม")
@@ -739,14 +674,10 @@ def generate_registration_form(request, id):
     pdf.drawString(6 * cm, 11 * cm, "________________________________________________________________________________")
     pdf.drawString(6 * cm, 10.3 * cm, "________________________________________________________________________________")
     pdf.drawString(6 * cm, 9.6 * cm, "________________________________________________________________________________")
-    # pdf.line(6 * cm, 11.1 * cm, 18 * cm, 11.1 * cm)
-    # pdf.line(6 * cm, 10.4 * cm, 18 * cm, 10.4 * cm)
-    # pdf.line(6 * cm, 9.7 * cm, 18 * cm, 9.7 * cm)
 
     # หมายเหตุ
     pdf.drawString(5 * cm, 9 * cm, "หมายเหตุ : โปรดแนบหลักฐานการเข้าร่วมกิจกรรม เช่น สําเนาโครงการ หนังสือเชิญ กําหนดการ รูปถ่าย เป็นต้น")
     pdf.drawString(6.4 * cm, 8.5 * cm, ": กรณีมีจํานวนนักศึกษาที่เข้าร่วมจํานวนมาก ให้แนบรายชื่อนักศึกษาพร้อมแบบบันทึกและชื่อรับรองทุกแผ่น")
-    # pdf.drawString(6.3 * cm, 5.5 * cm, ": กรณีมีจํานวนนักศึกษาที่เข้าร่วมจํานวนมาก ให้แนบรายชื่อนักศึกษาพร้อมแบบบันทึกและชื่อรับรองทุกแผ่น")
 
     pdf.drawString(4 * cm, 7.5 * cm, "ข้าพเจ้าขอรับรองว่าให้เข้าร่วมกิจกรรม ตามวัน เวลา และสถานที่ที่กล่าวจริง จึงเรียบมาเพื่อโปรดพิจารณา")
     pdf.drawString(4 * cm, 6.5 * cm, "(ลงชื่อ) _________________")
@@ -755,7 +686,6 @@ def generate_registration_form(request, id):
     pdf.drawString(13 * cm, 6.5 * cm, responsible_person_t)
     pdf.drawString(14 * cm, 6.5 * cm, responsible_person_f)
     pdf.drawString(15 * cm, 6.5 * cm, responsible_person_l)
-    # pdf.drawString(16 * cm, 6.5 * cm, "ผู้รับรองกิจกรรม")
     pdf.drawString(4.8 * cm, 6 * cm, "( __________________ )")
 
     pdf.drawString(12.8 * cm, 6 * cm, "( ___________________ )")
@@ -798,11 +728,14 @@ def generate_registration_form(request, id):
     # ส่งข้อมูล PDF และ activity_id ไปยัง template HTML
     return render(request, 'Person_responsible_for_the_project/generate_registration_form.html', {'pdf_base64': pdf_base64, 'activity_id': id})
 
+#UserFacultyStaff
+# def is_faculty_staff(user):
+#     return user.is_authenticated and hasattr(user, 'is_faculty_staff') and user.is_faculty_staff
 
+# @login_required
+# @user_passes_test(is_faculty_staff, login_url='login')
 def homeFacultyStaff(request):
-    # person_responsible = get_object_or_404(UserPerson_responsible_for_the_project, user=request.user)
-    
-        # รับค่าประเภทกิจกรรมจาก URL parameter
+    # รับค่าประเภทกิจกรรมจาก URL parameter
     activity_type = request.GET.get('activity_type', 'all')
 
     # ตรวจสอบว่าผู้ใช้เลือกประเภทกิจกรรมอะไร และกรองข้อมูล
@@ -820,8 +753,6 @@ def homeFacultyStaff(request):
         activities = db_create_activity.objects.filter(activity_type="5 ด้านส่งเสริมศิลปะและวัฒนธรรม")
     elif activity_type == 'other':
         activities = db_create_activity.objects.filter(activity_type="6 ด้านกิจกรรมอื่นๆ")
-
-    # activity = db_create_activity.objects.all()
             
     # ตรวจสอบว่ามีการกดปุ่มอนุมัติหรือไม่
     if request.method == 'POST':
@@ -841,9 +772,6 @@ def homeFacultyStaff(request):
 
                 selected_activity.is_approved = True  # อัปเดตสถานะการอนุมัติ
                 selected_activity.save()
-            #     messages.success(request, "นักศึกษาที่ได้รับการอนุมัติในกิจกรรมนี้ได้รับเครดิตแล้ว")
-            # else:
-            #     messages.warning(request, "กิจกรรมนี้ได้รับการอนุมัติแล้ว")
 
         elif 'cancel_approval' in request.POST:
             activity_id = request.POST.get('cancel_approval')
@@ -861,10 +789,8 @@ def homeFacultyStaff(request):
 
                 selected_activity.is_approved = False  # ยกเลิกสถานะการอนุมัติ
                 selected_activity.save()
-            #     messages.success(request, "ยกเลิกการอนุมัติเรียบร้อยแล้ว")
-            # else:
-            #     messages.warning(request, "กิจกรรมนี้ยังไม่ได้รับการอนุมัติ")
-        # ตรวจสอบกิจกรรมที่มีการอัปโหลด PDF
+
+    # ตรวจสอบกิจกรรมที่มีการอัปโหลด PDF
     for activity in activities:
         if ActivityPDF.objects.filter(activity=activity).exists():
             messages.info(
@@ -895,7 +821,6 @@ def dashboard(request):
             activity.participation_percentage = (activity.registered_count / activity.max_participants) * 100
         else:
             activity.participation_percentage = 0  
-
    
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         data = {
