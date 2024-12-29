@@ -52,9 +52,10 @@
 
                 <div id="userMenu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50">
                     <div class="py-1">
-                        <a href="{% url 'homeFacultyStaff' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">หน้าแรก</a>
-                        <a href="{% url 'profilePerson_responsible_for_the_project' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ข้อมูลส่วนตัว</a>
-                        <a href="{% url 'create_activity' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">สร้างประกาศรับสมัคร</a>
+                        <a href="{% url 'homeFacultyStaff' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">หน้าแรก(อนุมัติกิจกรรม)</a>
+                        <a href="{% url 'profileFacultyStaff' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ข้อมูลส่วนตัว</a>
+                        <a href="{% url 'create_activity_by_faculty_staff' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">สร้างประกาศรับสมัคร</a>
+                        <a href="{% url 'homeActivity' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">รายการที่ประกาศ</a>
                         <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">dashboard ภาพรวมกิจกรรม</a>
                         <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">รายงานการเข้าร่วมกิจกรรม</a>
                         <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ออกจากระบบ</a>

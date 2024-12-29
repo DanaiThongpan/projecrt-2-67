@@ -27,6 +27,7 @@
                 }
             }
         }
+        
         document.addEventListener("DOMContentLoaded", function() {
             const header = document.querySelector("header");
     
@@ -44,6 +45,45 @@
     
             // ตรวจสอบการเลื่อนหน้าจอทุกครั้งที่มีการเลื่อน
             window.addEventListener("scroll", checkScroll);
+
+            const studentLink = document.getElementById('student-link');
+            const responsibleLink = document.getElementById('responsible-link');
+            const studentIcon = document.getElementById('student-icon');
+            const responsibleIcon = document.getElementById('responsible-icon');
+
+            // ตั้งค่าเริ่มต้นให้ไอคอนมีสีเทา
+            studentIcon.classList.add('text-gray-500');
+            responsibleIcon.classList.add('text-gray-500');
+
+            // ฟังก์ชันเมื่อคลิกที่ลิงก์ "นักเรียน"
+            studentLink.addEventListener('click', function(event) {
+                event.preventDefault(); // ป้องกันไม่ให้ลิงก์ทำงาน
+                // เปลี่ยนสีของไอคอนนักเรียนเป็นสีแดง
+                studentIcon.classList.add('text-red-500');
+                studentIcon.classList.remove('text-gray-500');
+                
+                // ไอคอนผู้จัดงานยังคงเป็นสีเทา
+                responsibleIcon.classList.add('text-gray-500');
+                responsibleIcon.classList.remove('text-red-500');
+                
+                // เปลี่ยน URL หลังจากเลือก
+                window.location.href = studentLink.href;  // เปลี่ยนหน้าไปที่ URL ที่กำหนด
+            });
+
+            // ฟังก์ชันเมื่อคลิกที่ลิงก์ "ผู้จัดงาน"
+            responsibleLink.addEventListener('click', function(event) {
+                event.preventDefault(); // ป้องกันไม่ให้ลิงก์ทำงาน
+                // เปลี่ยนสีของไอคอนผู้จัดงานเป็นสีแดง
+                responsibleIcon.classList.add('text-red-500');
+                responsibleIcon.classList.remove('text-gray-500');
+                
+                // ไอคอนนักเรียนยังคงเป็นสีเทา
+                studentIcon.classList.add('text-gray-500');
+                studentIcon.classList.remove('text-red-500');
+                
+                // เปลี่ยน URL หลังจากเลือก
+                window.location.href = responsibleLink.href;  // เปลี่ยนหน้าไปที่ URL ที่กำหนด
+            });
         });
     </script>  
 </head>

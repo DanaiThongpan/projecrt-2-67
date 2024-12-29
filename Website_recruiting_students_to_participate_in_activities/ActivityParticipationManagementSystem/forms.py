@@ -13,6 +13,8 @@ class forms_create_activity(forms.ModelForm):
         model = db_create_activity
         fields = [
             'img_activity',
+            # 'user_faculty_staff',
+            # 'user_person_responsible',
             'semester',
             'activity_name',
             'activity_type',
@@ -51,15 +53,6 @@ class forms_create_activity(forms.ModelForm):
         }
 
 from .models import db_activity_adduser
-
-# class forms_activity_adduser(forms.ModelForm):
-#         class Meta:
-#             model = db_activity_adduser
-#             # fields = []
-#             fields = ['status']
-
-# from django import forms
-# from .models import db_activity_adduser
 
 class forms_activity_adduser(forms.ModelForm):
     class Meta:

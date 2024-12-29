@@ -205,7 +205,7 @@ def update_activity2(request, id):
 def delete_activity(request, id):
     activity = get_object_or_404(db_create_activity, pk=id)
     user_obj = UserPerson_responsible_for_the_project.objects.get(user=request.user)
-    if activity.user_person_responsible != user_obj:
+    if activity.user != user_obj:
         return redirect('homePerson_responsible_for_the_project')
     else:
         activity.delete()
@@ -822,15 +822,15 @@ def update_activity2_faculty_staff(request, id):
 
 @login_required
 @user_passes_test(is_faculty_staff, login_url='login')
-def delete_activity2(request, id):
+def delete_activity(request, id):
     activity = get_object_or_404(db_create_activity, pk=id)
     user_obj = UserFacultyStaff.objects.get(user=request.user)
-    if activity.user_faculty_staff != user_obj:
-        return redirect('homeActivity')
+    if activity.user != user_obj:
+        return redirect('homePerson_responsible_for_the_project')
     else:
         activity.delete()
 
-    return redirect('homeActivity')
+    return redirect('homePerson_responsible_for_the_project')
 
 ################################################################################################
 ################################################################################################
