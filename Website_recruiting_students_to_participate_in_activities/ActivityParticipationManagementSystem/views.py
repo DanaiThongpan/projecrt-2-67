@@ -253,38 +253,6 @@ def check_student_list(request, activity_id):
         'students_in_activity': students_in_activity,
     })
 
-import csv
-from django.http import HttpResponse
-from django.utils.encoding import iri_to_uri  # สำหรับแปลงชื่อไฟล์เป็น URL-encoded
-from django.shortcuts import get_object_or_404
-from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
-
-@login_required
-@user_passes_test(is_person_responsible_for_the_project, login_url='login')
-def download_activity_csv(request, activity_id):
-    # ดึงกิจกรรมที่ต้องการ
-    activity = get_object_or_404(db_create_activity, id=activity_id)
-
-    # ดึงข้อมูลนักศึกษาที่เข้าร่วมกิจกรรม
-    students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
-
-    # กำหนดชื่อไฟล์ภาษาไทย
-    filename = f"รายชื่อผู้เข้าร่วม_{activity.activity_name}.csv"
-    encoded_filename = iri_to_uri(filename)  # แปลงชื่อไฟล์เป็น URL-encoded
-
-    # สร้าง response สำหรับดาวน์โหลดไฟล์ CSV
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
-
-    # เขียนข้อมูลลงในไฟล์ CSV
-    writer = csv.writer(response)
-    # writer.writerow(['รหัสนักศึกษา', 'ชื่อกิจกรรม', 'หน่วยกิตที่ได้รับ'])
-
-    for student in students_in_activity:
-        writer.writerow([student.student.user.username, activity.credit])
-
-    return response
-
 from .models import ActivityPDF, db_activity_adduser  # นำเข้าโมเดลที่คุณต้องการใช้
 from django.contrib import messages
 
@@ -685,9 +653,9 @@ def generate_registration_form(request, id):
     pdf.drawString(4 * cm, 6.5 * cm, "(ลงชื่อ) _________________")
     pdf.drawString(8 * cm, 6.5 * cm, "ผู้ยื่นคำร้อง")
     pdf.drawString(12 * cm, 6.5 * cm, "(ลงชื่อ) ___________________ ผู้รับรองกิจกรรม")
-    pdf.drawString(13 * cm, 6.5 * cm, responsible_person_t)
-    pdf.drawString(14 * cm, 6.5 * cm, responsible_person_f)
-    pdf.drawString(15 * cm, 6.5 * cm, responsible_person_l)
+    # pdf.drawString(13 * cm, 6.5 * cm, responsible_person_t)
+    # pdf.drawString(14 * cm, 6.5 * cm, responsible_person_f)
+    # pdf.drawString(15 * cm, 6.5 * cm, responsible_person_l)
     pdf.drawString(4.8 * cm, 6 * cm, "( __________________ )")
 
     pdf.drawString(12.8 * cm, 6 * cm, "( ___________________ )")
@@ -733,6 +701,38 @@ def generate_registration_form(request, id):
 #UserFacultyStaff
 def is_faculty_staff(user):
     return user.is_authenticated and hasattr(user, 'is_faculty_staff') and user.is_faculty_staff
+
+import csv
+from django.http import HttpResponse
+from django.utils.encoding import iri_to_uri  # สำหรับแปลงชื่อไฟล์เป็น URL-encoded
+from django.shortcuts import get_object_or_404
+from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
+
+@login_required
+@user_passes_test(is_faculty_staff, login_url='login')
+def download_activity_csv(request, activity_id):
+    # ดึงกิจกรรมที่ต้องการ
+    activity = get_object_or_404(db_create_activity, id=activity_id)
+
+    # ดึงข้อมูลนักศึกษาที่เข้าร่วมกิจกรรม
+    students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
+
+    # กำหนดชื่อไฟล์ภาษาไทย
+    filename = f"รายชื่อผู้เข้าร่วม_{activity.activity_name}.csv"
+    encoded_filename = iri_to_uri(filename)  # แปลงชื่อไฟล์เป็น URL-encoded
+
+    # สร้าง response สำหรับดาวน์โหลดไฟล์ CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+
+    # เขียนข้อมูลลงในไฟล์ CSV
+    writer = csv.writer(response)
+    # writer.writerow(['รหัสนักศึกษา', 'ชื่อกิจกรรม', 'หน่วยกิตที่ได้รับ'])
+
+    for student in students_in_activity:
+        writer.writerow([student.student.user.username, activity.credit])
+
+    return response
 
 @login_required
 @user_passes_test(is_faculty_staff, login_url='login')
@@ -1382,15 +1382,112 @@ def dashboard(request):
         'selected_type': selected_type,
     })
 
-def approve_credits(request, activity_id):
-    activity = get_object_or_404(db_create_activity, id=activity_id)
-    
-    students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
-    
-    for student_in_activity in students_in_activity:
-        student = student_in_activity.student
-        student.number_of_credits_available += activity.credit
-        student.save()
+def dashboard2(request):
+    selected_type = request.GET.get('activity_type', '')  # รับค่าที่ผู้ใช้เลือกจาก Dropdown
+    # นับจำนวนการเข้าร่วมกิจกรรมแบ่งตามประเภทกิจกรรม
+    activity_stats = db_create_activity.objects.values('activity_type').annotate(count=Count('id'))
+    activities = db_create_activity.objects.all()
 
-    messages.success(request, "นักศึกษาทุกคนได้รับเครดิตเรียบร้อยแล้ว")
-    return redirect('homeFacultyStaff')
+    if selected_type:
+        activities = activities.filter(activity_type=selected_type)
+
+    activity_types = db_create_activity.objects.values_list('activity_type', flat=True).distinct()
+
+    for activity in activities:
+        if activity.max_participants > 0:
+            activity.participation_percentage = (activity.registered_count / activity.max_participants) * 100
+        else:
+            activity.participation_percentage = 0  
+   
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = {
+            'activityLabels': [activity.activity_name for activity in activities],
+            'maxParticipantsData': [activity.max_participants for activity in activities],
+            'registeredCountData': [activity.registered_count for activity in activities],
+            'activities': [
+                {
+                    'activity_name': activity.activity_name,
+                    'max_participants': activity.max_participants,
+                    'registered_count': activity.registered_count,
+                    'participation_percentage': activity.participation_percentage,
+                }
+                for activity in activities
+            ]
+        }
+        return JsonResponse(data)
+
+    return render(request, 'FacultyStaff/dashboard2.html', {
+        'activity_stats': activity_stats,
+        'activities': activities,
+        'activity_types': activity_types,  
+        'selected_type': selected_type,
+    })
+
+# def approve_credits(request, activity_id):
+#     activity = get_object_or_404(db_create_activity, id=activity_id)
+    
+#     students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
+    
+#     for student_in_activity in students_in_activity:
+#         student = student_in_activity.student
+#         student.number_of_credits_available += activity.credit
+#         student.save()
+
+#     messages.success(request, "นักศึกษาทุกคนได้รับเครดิตเรียบร้อยแล้ว")
+#     return redirect('homeFacultyStaff')
+
+##########################################################################################
+
+#UserFacultyStaff
+def is_staff(user):
+    return user.is_authenticated and hasattr(user, 'is_staff') and user.is_staff
+
+@login_required
+@user_passes_test(is_staff, login_url='login')
+def homeAdmin(request):
+    # รับค่าประเภทกิจกรรมจาก URL parameter
+    user_facultystaff_type = request.GET.get('is_approved', 'all')
+
+    # ตรวจสอบว่าผู้ใช้เลือกประเภทกิจกรรมอะไร และกรองข้อมูล
+    if user_facultystaff_type == 'all':
+        user_facultystaff = UserFacultyStaff.objects.all()  # ดึงข้อมูลทั้งหมดของ UserFacultyStaff
+    elif user_facultystaff_type == 'approved':
+        user_facultystaff = UserFacultyStaff.objects.filter(is_approved="True")  # กรองเฉพาะที่ได้รับการอนุมัติ
+    elif user_facultystaff_type == 'waitingapproval':
+        user_facultystaff = UserFacultyStaff.objects.filter(is_approved="False")  # กรองเฉพาะที่รอการอนุมัติ
+    else:
+        user_facultystaff = UserFacultyStaff.objects.all()  # ถ้าไม่ได้เลือก ให้ดึงข้อมูลทั้งหมด
+
+    # user_facultystaff = UserFacultyStaff.objects.all()  # ดึงข้อมูลทั้งหมดของ UserFacultyStaff
+
+    # ตรวจสอบว่ามีการกดปุ่มอนุมัติหรือไม่
+    if request.method == 'POST':
+        if 'approve_user' in request.POST:
+            user_id = request.POST.get('approve_user')  # รับค่าจากปุ่มอนุมัติ
+            selected_facultystaff = get_object_or_404(UserFacultyStaff, id=user_id)  # ใช้ id ของ UserFacultyStaff เพื่อดึงข้อมูล
+            
+            # ตรวจสอบสถานะ is_approved ของ user_facultystaff
+            if not selected_facultystaff.is_approved:
+                selected_facultystaff.is_approved = True  # อัปเดตสถานะเป็นอนุมัติ
+                selected_facultystaff.save()  # บันทึกการเปลี่ยนแปลง
+
+                # อัปเดตสถานะ is_faculty_staff ของ User
+                selected_facultystaff.user.is_faculty_staff = True  # ตั้งค่า is_faculty_staff ของ User เป็น True
+                selected_facultystaff.user.save()  # บันทึกการเปลี่ยนแปลง
+
+        elif 'cancel_approval' in request.POST:
+            user_id = request.POST.get('cancel_approval')  # รับค่าจากปุ่มยกเลิกอนุมัติ
+            selected_facultystaff = get_object_or_404(UserFacultyStaff, id=user_id)  # ใช้ id ของ UserFacultyStaff เพื่อดึงข้อมูล
+            
+            # ตรวจสอบสถานะ is_approved และทำการยกเลิกอนุมัติ
+            if selected_facultystaff.is_approved:
+                selected_facultystaff.is_approved = False  # เปลี่ยนสถานะเป็นยกเลิกอนุมัติ
+                selected_facultystaff.save()  # บันทึกการเปลี่ยนแปลง
+
+                # ยกเลิกสถานะ is_faculty_staff ของ User
+                selected_facultystaff.user.is_faculty_staff = False  # ตั้งค่า is_faculty_staff ของ User เป็น False
+                selected_facultystaff.user.save()  # บันทึกการเปลี่ยนแปลง
+
+    return render(request, 'Admin/home.html', {
+        'db': user_facultystaff  # ส่งข้อมูลทั้งหมดของ user_facultystaff ไปยัง template
+    })

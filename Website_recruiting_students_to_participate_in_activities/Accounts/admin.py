@@ -36,6 +36,7 @@ admin.site.register(UserPerson_responsible_for_the_project, UserPerson_responsib
 class UserUserFacultyStaffAdminDisplay(admin.ModelAdmin):
     list_display = ['user',
                     'title', 
-                    'faculty']
+                    'faculty',
+                    'is_approved']
 
 admin.site.register(UserFacultyStaff, UserUserFacultyStaffAdminDisplay)

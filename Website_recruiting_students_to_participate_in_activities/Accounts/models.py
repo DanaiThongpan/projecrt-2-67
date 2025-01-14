@@ -43,7 +43,8 @@ class UserFacultyStaff(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='facultystaff')
     title = models.CharField(max_length=10, choices=title__choices, default="นาย")
     faculty = models.CharField(max_length=50, choices=faculty_choices, default="วิทยาศาสตร์")
- 
+    is_approved = models.BooleanField(default=False)  # เพิ่มฟิลด์นี้เพื่อเก็บค่าสถานะอนุมัติ
+
     def __str__(self) -> str:
         return (f'{self.user, self.faculty, self.title }')
     

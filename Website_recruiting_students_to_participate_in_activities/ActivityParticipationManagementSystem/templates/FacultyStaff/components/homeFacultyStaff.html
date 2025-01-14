@@ -129,15 +129,6 @@
                                 </td>
                                 
                                 <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
-                                    <!-- <a href="{% url 'approve_credits' i.id %}" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-blue-700 mx-1">อนุมัติ</a><br>
-                                    <br>
-                                    {% if messages %}
-                                        <ul class="messages">
-                                            {% for message in messages %}
-                                                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %} -->
                                     {% if not i.is_approved %}
                                         <form method="post">
                                             {% csrf_token %}

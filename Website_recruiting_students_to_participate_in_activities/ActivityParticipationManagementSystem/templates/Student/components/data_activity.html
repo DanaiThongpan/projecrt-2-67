@@ -22,7 +22,7 @@
                     <td class="border px-4 py-3 text-lg">
                         <p><strong>ชื่อกิจกรรม:</strong> {{i.activity_name}}</p>
                         <p><strong>เปิดให้ลงทะเบียนถึงวันที่:</strong> {{i.due_date_registration}}</p>
-                        <p><strong>ผู้รับผิดชอบโครงการ:</strong> {{i.user.title}} {{i.user.user.first_name}} {{i.user.user.last_name}}</p>
+                        <p><strong>ผู้รับผิดชอบโครงการ:</strong> {{i.user_person_responsible.title}} {{i.user_person_responsible.user.first_name}} {{i.user_person_responsible.user.last_name}}</p>
                         <p><strong>จำนวนเป้าหมาย:</strong> {{i.max_participants}}</p>
                         <p><strong>สถานที่จัดกิจกรรม:</strong> {{i.place}}</p>
                         <p><strong>ด้านที่:</strong> {{i.activity_type}}</p>

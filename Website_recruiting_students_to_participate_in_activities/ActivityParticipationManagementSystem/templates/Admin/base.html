@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบรับสมัครนักศึกษาเข้าร่วมกิจกรรม</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" href="https://training.ubu.ac.th/assets/img/ubu_logo.png" sizes="32x32" type="image/png">
 
     <script>
@@ -67,17 +65,33 @@
             // ตรวจสอบการเลื่อนหน้าจอทุกครั้งที่มีการเลื่อน
             window.addEventListener("scroll", checkScroll);
         });
+
+        function confirmRegistration() {
+            return confirm("คุณต้องการยืนยันรายชื่อใช่หรือไม่?");
+        }
+
+        function confirmCancellation() {
+            return confirm("คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้ใช่หรือไม่?");
+        }
+
+        function toggleSelectAll(source) {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = source.checked;
+        });
+    }
+
     </script>
 </head>
 <body>
     <div class="h-screen">
-    {% include 'FacultyStaff/topbar.html' %}
+    {% include 'Admin/topbar.html' %}
 
     {% block content %} 
     
     {% endblock %} 
 
-    {% include 'FacultyStaff/footer.html' %}
+    {% include 'Admin/footer.html' %}
     </div>
 </body>
 </html>

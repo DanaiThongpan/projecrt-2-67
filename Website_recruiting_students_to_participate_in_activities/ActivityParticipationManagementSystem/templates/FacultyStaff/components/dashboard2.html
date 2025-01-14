@@ -1,0 +1,157 @@
+<body class="bg-gray-100 text-gray-800 h-screen">
+
+    <!-- Header Section -->
+    <div class="pt-24 px-8 p-6 bg-gray-100">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">สถิติการเข้าร่วมกิจกรรม</h1>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="flex justify-center items-center mb-6">
+        <div class="w-full max-w-3xl bg-white p-4 rounded-lg shadow-md">
+            <!-- Dropdown for activity type selection -->
+            <div class="flex justify-between items-center">
+                <select id="activityTypeSelect" class="p-2 border rounded-lg" onchange="updateCharts()">
+                    <option value="">กิจกรรมทั้งหมด</option> <!-- Option for all activities -->
+                    {% for activity_type in activity_types %}
+                        <option value="{{ activity_type }}">{{ activity_type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar Chart Section -->
+    <!-- <div class="flex justify-center items-center mb-6">
+        <div class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div> -->
+
+    <!-- Summary Table Section -->
+    <div class="flex justify-center items-center mb-6">
+        <div class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
+            <table class="w-full text-left">
+                <thead>
+                    <tr>
+                        <th class="p-2 border-b">ชื่อกิจกรรม</th>
+                        <th class="p-2 border-b">จำนวนที่เปิดรับ</th>
+                        <th class="p-2 border-b">จำนวนที่เข้าร่วม</th>
+                        <th class="p-2 border-b">เปอร์เซ็นต์การเข้าร่วม</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTableBody">
+                    {% for activity in activities %}
+                    <tr>
+                        <td class="p-2 border-b">{{ activity.activity_name }}</td>
+                        <td class="p-2 border-b">{{ activity.max_participants }}</td>
+                        <td class="p-2 border-b">{{ activity.registered_count }}</td>
+                        <td class="p-2 border-b">
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: {{ activity.participation_percentage }}%;">
+                                </div>
+                            </div>
+                            <span class="text-sm">{{ activity.participation_percentage|floatformat:2 }}%</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Chart.js Configuration -->
+    <script>
+        // Function to update charts based on selected activity type
+        function updateCharts() {
+            const selectedType = document.getElementById('activityTypeSelect').value;
+
+            fetch(`/dashboard/?activity_type=${selectedType}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'  // Proper header for AJAX
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update bar chart
+                barChart.data.labels = data.activityLabels;
+                barChart.data.datasets[0].data = data.maxParticipantsData;
+                barChart.data.datasets[1].data = data.registeredCountData;
+                barChart.update();
+
+                // Update table
+                const tableBody = document.getElementById('activityTableBody');
+                tableBody.innerHTML = ''; // Clear existing rows
+                data.activities.forEach(activity => {
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td class="p-2 border-b">${activity.activity_name}</td>
+                            <td class="p-2 border-b">${activity.max_participants}</td>
+                            <td class="p-2 border-b">${activity.registered_count}</td>
+                            <td class="p-2 border-b">
+                                <div class="w-full bg-gray-200 rounded-full h-4">
+                                    <div class="bg-blue-600 h-4 rounded-full" style="width: ${activity.participation_percentage.toFixed(2)}%;">
+                                    </div>
+                                </div>
+                                <span class="text-sm">${activity.participation_percentage.toFixed(2)}%</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        // Initial data passed from Django to JavaScript
+        const activityLabels = [
+            {% for activity in activities %}
+                "{{ activity.activity_name }}",
+            {% endfor %}
+        ];
+
+        const maxParticipantsData = [
+            {% for activity in activities %}
+                {{ activity.max_participants }},
+            {% endfor %}
+        ];
+
+        const registeredCountData = [
+            {% for activity in activities %}
+                {{ activity.registered_count }},
+            {% endfor %}
+        ];
+
+        // Bar Chart Configuration
+        var ctxBar = document.getElementById('barChart').getContext('2d');
+        var barChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: activityLabels,
+                datasets: [
+                    {
+                        label: 'จำนวนที่เปิดรับ',
+                        data: maxParticipantsData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'จำนวนที่เข้าร่วม',
+                        data: registeredCountData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

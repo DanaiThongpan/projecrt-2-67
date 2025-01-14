@@ -1,9 +1,9 @@
 <header class="fixed top-0 w-full flex justify-between items-center px-6 py-4 bg-white shadow-md z-50">
 
-    <div class="flex items-center space-x-2">
+    <a class="flex items-center space-x-2" href="{% url 'homePerson_responsible_for_the_project' %}">
         <img src="https://training.ubu.ac.th/assets/img/ubu_logo.png" alt="UBU Logo" class="w-10 h-10">
         <h2 class="text-xl font-bold">ระบบรับสมัครนักศึกษาเข้าร่วมกิจกรรม</h2>
-    </div>
+    </a>
 
     <nav class="flex items-center space-x-6">
 
@@ -26,7 +26,6 @@
                     </div>
                 </div>
             </div> -->
-    
                 <div id="notificationMenu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50">
                     <div class="py-1">
                         {% if messages %}
@@ -41,23 +40,25 @@
                     </div>
                 </div>
             </div>
+    
             <!-- User Dropdown -->
             <div class="relative">
                 
                 <button id="userDropdown" class="flex items-center space-x-2 font-bold text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-user-round"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
-                    <div class="text-black-600 font-bold text-blue-500">{{ user.first_name }} {{ user.last_name }}</div>
+                    <div class="text-black-600 font-bold text-blue-500">
+                        {% if user.is_staff %}
+                            Admin
+                        {% endif %}
+                    </div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="5 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
 
                 <div id="userMenu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50">
                     <div class="py-1">
-                        <a href="{% url 'homeFacultyStaff' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">หน้าแรก(อนุมัติกิจกรรม)</a>
-                        <a href="{% url 'profileFacultyStaff' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ข้อมูลส่วนตัว</a>
-                        <a href="{% url 'create_activity_by_faculty_staff' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">สร้างประกาศรับสมัคร</a>
-                        <a href="{% url 'homeActivity' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">รายการที่ประกาศ</a>
-                        <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">dashboard ภาพรวมกิจกรรม</a>
-                        <a href="{% url 'dashboard2' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">รายงานการเข้าร่วมกิจกรรม</a>
+                        <!-- <a href="{% url 'homePerson_responsible_for_the_project' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">หน้าแรก</a> -->
+                        <!-- <a href="{% url 'profilePerson_responsible_for_the_project' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ข้อมูลส่วนตัว</a> -->
+                        <!-- <a href="{% url 'create_activity' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">สร้างประกาศรับสมัคร</a> -->
                         <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ออกจากระบบ</a>
                     </div>
                 </div>

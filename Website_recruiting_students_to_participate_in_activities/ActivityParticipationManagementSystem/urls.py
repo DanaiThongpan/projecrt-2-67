@@ -38,9 +38,13 @@ urlpatterns = [
     path('homeActivity/generate_registration_form2/<int:id>/', generate_registration_form2, name='generate_registration_form2'),
 
     path('dashboard/', dashboard, name='dashboard'),
+    path('dashboard2/', dashboard2, name='dashboard2'),
     path('activity/<int:activity_id>/upload_pdf/', upload_pdf, name='upload_pdf'),
     path('activity/<int:activity_id>/upload_pdf2/', upload_pdf2, name='upload_pdf2'),
     
-    path('approve_credits/<int:activity_id>/', approve_credits, name='approve_credits'),
+    # path('approve_credits/<int:activity_id>/', approve_credits, name='approve_credits'),
+
+    path('homeAdmin/', homeAdmin, name='homeAdmin'),
+    # path('approve_user/<int:user_id>/', approve_user, name='approve_user'),
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

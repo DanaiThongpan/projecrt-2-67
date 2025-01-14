@@ -61,7 +61,8 @@ def RegisterFacultyStaff(request):
 
         if form1.is_valid() and form2.is_valid():
             user = form1.save(commit=False)
-            user.is_faculty_staff = True
+            user.is_faculty_staff = False
+            user.is_approved = False
             user.save()
             faculty_staff_profile = form2.save(commit=False)        
             faculty_staff_profile.user = user
@@ -85,7 +86,7 @@ def login(request):
         if user is not None:
             auth_login(request, user)
             if request.user.is_staff:
-                return redirect('/')
+                return redirect('homeAdmin')
             elif request.user.is_faculty_staff: #เพิ่มส่วนของ user is_staff และลบตรงนนี้ออก
                 return redirect('homeFacultyStaff')
             elif request.user.is_person_responsible_for_the_project:
