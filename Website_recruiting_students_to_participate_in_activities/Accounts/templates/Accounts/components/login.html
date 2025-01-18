@@ -1,14 +1,14 @@
 <main class="flex justify-center items-center px-12 py-10 pt-20 h-screen">
-    <div class="max-w-md w-full bg-gray-100 p-8 shadow-lg rounded-lg animate-slide-in-left">
+    <div class="max-w-md w-full p-8 shadow-2xl rounded-lg animate-slide-in-left border">
         <h1 class="text-2xl font-bold mb-6 text-center">เข้าสู่ระบบ</h1>
         <form action="{% url 'login' %}" method="post">
             {% csrf_token %}
             <div class="mb-2">
-                <label for="username" class="block text-gray-700">Username</label>
+                <label for="username" class="block text-gray-700">ชื่อผู้ใช้*</label>
                 <input type="text" id="username" name="username" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" required>
             </div>
             <div class="mb-2">
-                <label for="password" class="block text-gray-700">Password</label>
+                <label for="password" class="block text-gray-700">รหัสผ่าน*</label>
                 <input type="password" id="password" name="password" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" required>
             </div>
             <div class="mb-4 text-right">

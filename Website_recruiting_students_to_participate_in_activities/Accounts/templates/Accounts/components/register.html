@@ -1,24 +1,47 @@
 {% load crispy_forms_tags %}
 <br>
-<main class="flex justify-center items-center px-12 py-16 pt-20">
-    <div class="w-auto bg-gray-100 p-8 shadow-lg rounded-lg animate-slide-in-left">
-        <h1 class="text-2xl font-bold mb-6 text-center">ลงทะเบียน</h1>
-        
-        <!-- ส่วนเลือกบทบาท -->
-        <div class="bg-gray-100 p-6">
-            <h2 class="text-lg font-semibold mb-4 text-center text-red-700">*กรุณาเลือกประเภทผู้ใช้งาน</h2>
-            <div class="flex justify-center space-x-4">
-                <!-- Icon สำหรับนักเรียน -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-round icon-role" id="student-icon"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>
-                <a href="{% url 'Register' %}?role=student" class="flex-1 py-3 px-4 bg-blue-500 text-white text-center rounded-lg shadow-md hover:bg-blue-600 transition duration-300 text-sm font-medium" id="student-link">
-                    นักเรียน
-                </a>
+<main class="flex justify-center items-center px-12 py-16 pt-20 min-h-screen mt-40 lg:mt-0 ">
+    <div class="w-auto  p-8 shadow-xl rounded-lg animate-slide-in-left border">
+        <h1 class="text-2xl font-bold mb-0 text-center">ลงทะเบียน</h1>
 
+        <!-- ส่วนเลือกบทบาท -->
+        <div class=" p-6">
+            <h2 class="text-lg font-semibold mb-4 text-center text-red-700">*กรุณาเลือกประเภทผู้ใช้งาน</h2>
+            <div class="lg:flex lg:justify-center lg:items-center lg:space-x-4 space-y-2 lg:space-y-0">
+                <!-- Icon สำหรับนักเรียน -->
+                <div class="flex items-center space-x-2 ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-users-round icon-role" id="student-icon">
+                        <path d="M18 21a8 8 0 0 0-16 0" />
+                        <circle cx="10" cy="8" r="5" />
+                        <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+                    </svg>
+                    <a href="{% url 'Register' %}?role=student"
+                        class="border flex-1 py-3 px-4 {% if role == 'student' %}bg-blue-600 text-white {% else %}bg-white {% endif %} text-center rounded-lg shadow-md hover:bg-blue-600 hover:text-white transition duration-300 text-sm font-medium"
+                        id="student-link">
+                        นักเรียน
+                    </a>
+                </div>
                 <!-- Icon สำหรับผู้จัดงาน -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-cog icon-role" id="responsible-icon"><path d="M16 2v2"/><path d="M17.915 22a6 6 0 0 0-12 0"/><path d="M8 2v2"/><circle cx="12" cy="12" r="4"/><rect x="3" y="4" width="18" height="18" rx="2"/></svg>
-                <a href="{% url 'Register' %}?role=person_responsible_for_the_project" class="flex-1 py-3 px-4 bg-green-500 text-white text-center rounded-lg shadow-md hover:bg-green-600 transition duration-300 text-sm font-medium" id="responsible-link">
-                    ผู้จัดงาน
-                </a>
+
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-user-round-cog icon-role" id="responsible-icon">
+                        <path d="M16 2v2" />
+                        <path d="M17.915 22a6 6 0 0 0-12 0" />
+                        <path d="M8 2v2" />
+                        <circle cx="12" cy="12" r="4" />
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                    </svg>
+                    <a href="{% url 'Register' %}?role=person_responsible_for_the_project"
+                        class="border flex-1 py-3 px-4 {% if role == 'student' %} bg-white {% else %} bg-blue-600 text-white {% endif %} hover:text-white text-center rounded-lg shadow-md hover:bg-blue-600 transition duration-300 text-sm font-medium"
+                        id="responsible-link">
+                        ผู้จัดงาน
+                    </a>
+                </div>
+
             </div>
         </div>
 
@@ -28,7 +51,8 @@
             {{ form2|crispy }}
             {{ form1|crispy }}
             <div class="text-center">
-                <button type="submit" class="w-full px-4 py-2 bg-blue-400 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">ลงทะเบียน</button>
+                <button type="submit"
+                    class="w-full px-4 py-2 bg-blue-400 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">ลงทะเบียน</button>
             </div>
         </form>
     </div>

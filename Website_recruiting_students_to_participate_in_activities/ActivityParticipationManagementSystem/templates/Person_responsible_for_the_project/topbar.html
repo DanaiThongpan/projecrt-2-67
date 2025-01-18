@@ -1,11 +1,11 @@
-<header class="fixed top-0 w-full flex justify-between items-center px-6 py-4 bg-white shadow-md z-50">
+<header class="fixed top-0 w-full lg:flex justify-between items-center px-6 py-4 bg-white z-50 drop-shadow-md">
 
     <a class="flex items-center space-x-2" href="{% url 'homePerson_responsible_for_the_project' %}">
         <img src="https://training.ubu.ac.th/assets/img/ubu_logo.png" alt="UBU Logo" class="w-10 h-10">
         <h2 class="text-xl font-bold">ระบบรับสมัครนักศึกษาเข้าร่วมกิจกรรม</h2>
     </a>
 
-    <nav class="flex items-center space-x-6">
+    <nav class="gap-x-6 gap-y-2 lg:gap-y-0 grid lg:flex mt-5 lg:mt-0">
 
         <!-- <a href="{% url 'homePerson_responsible_for_the_project' %}" class="text-black-600 font-bold hover:text-blue-500">หน้าแรก</a> -->
 
@@ -50,7 +50,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="5 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
 
-                <div id="userMenu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50">
+                <div id="userMenu" class="hidden absolute left-0 lg:left-auto lg:right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50">
                     <div class="py-1">
                         <a href="{% url 'homePerson_responsible_for_the_project' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">หน้าแรก</a>
                         <a href="{% url 'profilePerson_responsible_for_the_project' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ข้อมูลส่วนตัว</a>

@@ -38,6 +38,15 @@ def upload_to_activity_img_activity(instance, filename):
     #แก้ชื่อ activity_pdfs
     return os.path.join(f'activity_pdfs/{user_type}/{faculty}/{user_create}/{instance.activity_name}', filename)
 
+act_choices=[
+        ('1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์', '1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์'),
+        ('2 ด้านกีฬาหรือการส่งเสริมสุขภาพ', '2 ด้านกีฬาหรือการส่งเสริมสุขภาพ'),
+        ('3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม', '3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม'),
+        ('4 ด้านเสริมสร้างคุณธรรมและจริยธรรม', '4 ด้านเสริมสร้างคุณธรรมและจริยธรรม'),
+        ('5 ด้านส่งเสริมศิลปะและวัฒนธรรม', '5 ด้านส่งเสริมศิลปะและวัฒนธรรม'),
+        ('6 ด้านกิจกรรมอื่นๆ', '6 ด้านกิจกรรมอื่นๆ'),
+    ]
+
 class db_create_activity(models.Model):
     # user = models.ForeignKey(UserPerson_responsible_for_the_project, on_delete=models.CASCADE, related_name='create_activity2')
     user_faculty_staff = models.ForeignKey(UserFacultyStaff, null=True, blank=True, on_delete=models.CASCADE, related_name='create_activity_faculty')
@@ -45,14 +54,7 @@ class db_create_activity(models.Model):
     
     img_activity = models.ImageField(upload_to=upload_to_activity_img_activity, blank=True, null=True)
     activity_name = models.CharField(max_length=30)
-    activity_type = models.CharField(max_length=100, choices=[
-        ('1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์', '1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์'),
-        ('2 ด้านกีฬาหรือการส่งเสริมสุขภาพ', '2 ด้านกีฬาหรือการส่งเสริมสุขภาพ'),
-        ('3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม', '3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม'),
-        ('4 ด้านเสริมสร้างคุณธรรมและจริยธรรม', '4 ด้านเสริมสร้างคุณธรรมและจริยธรรม'),
-        ('5 ด้านส่งเสริมศิลปะและวัฒนธรรม', '5 ด้านส่งเสริมศิลปะและวัฒนธรรม'),
-        ('6 ด้านกิจกรรมอื่นๆ', '6 ด้านกิจกรรมอื่นๆ'),
-    ])
+    activity_type = models.CharField(max_length=100, choices=act_choices)
     due_date_registration = models.DateTimeField()  # ฟิลด์ใหม่สำหรับวันปิดรับสมัคร
     place = models.CharField(max_length=30)
     start_date_activity = models.DateTimeField()
@@ -99,8 +101,8 @@ class db_create_activity(models.Model):
             self.is_registration_open = False
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f'{self.img_activity} {self.activity_name} {self.activity_type} {self.place} {self.start_date_activity} {self.due_date_activity} {self.start_date_activity} {self.description}'
+    # def __str__(self):
+    #     return f'{self.img_activity} {self.activity_name} {self.activity_type} {self.place} {self.start_date_activity} {self.due_date_activity} {self.start_date_activity} {self.description}'
 
 import os
 from django.db import models

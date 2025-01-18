@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,18 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" href="https://training.ubu.ac.th/assets/img/ubu_logo.png" sizes="32x32" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         tailwind.config = {
@@ -30,28 +43,28 @@
                 }
             }
         }
-        
+
         function setupDropdown(buttonId, menuId) {
             const button = document.getElementById(buttonId);
             const menu = document.getElementById(menuId);
-    
+
             button.addEventListener('click', () => {
                 menu.classList.toggle('hidden');
             });
-    
+
             document.addEventListener('click', (event) => {
                 if (!button.contains(event.target) && !menu.contains(event.target)) {
                     menu.classList.add('hidden');
                 }
             });
         }
-    
+
         document.addEventListener('DOMContentLoaded', () => {
             setupDropdown('notificationDropdown', 'notificationMenu');
             setupDropdown('userDropdown', 'userMenu');
 
             const header = document.querySelector("header");
-    
+
             // ฟังก์ชันตรวจสอบการเลื่อนหน้าจอ
             function checkScroll() {
                 if (window.scrollY > 0) {
@@ -60,24 +73,26 @@
                     header.classList.remove("shadow-md");
                 }
             }
-    
+
             // ตรวจสอบการเลื่อนหน้าจอเมื่อโหลดหน้าเว็บ
             checkScroll();
-    
+
             // ตรวจสอบการเลื่อนหน้าจอทุกครั้งที่มีการเลื่อน
             window.addEventListener("scroll", checkScroll);
         });
     </script>
 </head>
-<body>
-    <div class="h-screen">
-    {% include 'FacultyStaff/topbar.html' %}
 
-    {% block content %} 
-    
-    {% endblock %} 
+<body style="font-family: 'Prompt';">
+    <div class="min-h-screen h-full">
+        {% include 'FacultyStaff/topbar.html' %}
 
-    {% include 'FacultyStaff/footer.html' %}
+        {% block content %}
+
+        {% endblock %}
+
+        {% include 'FacultyStaff/footer.html' %}
     </div>
 </body>
+
 </html>

@@ -45,6 +45,7 @@ urlpatterns = [
     # path('approve_credits/<int:activity_id>/', approve_credits, name='approve_credits'),
 
     path('homeAdmin/', homeAdmin, name='homeAdmin'),
+    path('dashboard_api/', dashboard_api, name='dashboard_api'),
     # path('approve_user/<int:user_id>/', approve_user, name='approve_user'),
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://9578-27-55-81-85.ngrok-free.app',
+    'https://danai.tongar.space',
 ]
 
 # ALLOWED_HOSTS = [
@@ -91,6 +92,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'debug': True,
         },
     },
 ]
@@ -137,9 +139,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'TH-th'
+# LANGUAGE_CODE = 'TH-th'
+LANGUAGE_CODE = 'th'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+
+TIME_ZONE = 'Asia/Bangkok'
 
 USE_I18N = True
 
@@ -150,6 +155,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'staticfiles'] 
 MEDIA_URL = "ActivityParticipationManagementSystem/media/"
 MEDIA_ROOT = "ActivityParticipationManagementSystem/media/"
 

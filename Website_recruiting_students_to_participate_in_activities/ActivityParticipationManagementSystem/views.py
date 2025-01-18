@@ -10,6 +10,8 @@ from ActivityParticipationManagementSystem.forms import forms_activity_adduser, 
 from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
 from Accounts.models import *
 from django.contrib import messages
+from Accounts.models import faculty_choices
+from .models import act_choices
 
 from Website_recruiting_students_to_participate_in_activities import settings
 
@@ -27,6 +29,7 @@ def homeStudent(request):
     db = db_activity_adduser.objects.all()
     user_student = UserStudent.objects.get(user=request.user)
     activity_all = db_create_activity.objects.all()
+    
 
     if 'show_popup' not in request.session:
         credits_needed = user_student.number_of_credits_required - user_student.number_of_credits_available
@@ -45,6 +48,7 @@ def homeStudent(request):
     return render(request, 'Student/home.html', {
         'db': activity_all,
         'std': db,
+        'act_choices': act_choices[:],
     })
 
 from django.db import models, transaction
@@ -151,6 +155,8 @@ def homePerson_responsible_for_the_project(request):
     return render(request, 'Person_responsible_for_the_project/home.html', {
         'i': person_responsible,
         'db': activities,
+        'act_choices': act_choices[:],
+
     })
 
 @login_required
@@ -1272,6 +1278,7 @@ def generate_registration_form2(request, id):
 @user_passes_test(is_faculty_staff, login_url='login')
 def homeFacultyStaff(request):
     # รับค่าประเภทกิจกรรมจาก URL parameter
+
     activity_type = request.GET.get('activity_type', 'all')
 
     # ตรวจสอบว่าผู้ใช้เลือกประเภทกิจกรรมอะไร และกรองข้อมูล
@@ -1336,9 +1343,10 @@ def homeFacultyStaff(request):
 
     return render(request, 'FacultyStaff/home.html', {
         'db': activities,
+        'act_choices': act_choices[:],
     })
 
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from django.db.models import Count
 
 def dashboard(request):
@@ -1381,6 +1389,75 @@ def dashboard(request):
         'activity_types': activity_types,  
         'selected_type': selected_type,
     })
+
+# def dashboard_api(request):
+#     activities = db_create_activity.objects.all()
+#     for i in activities:
+#         print("activity_name ",i.activity_name)
+#         print("activity_type ",i.activity_type)
+#         if i.user_faculty_staff != None:
+#             print("---staff---")
+#             print("username ",i.user_faculty_staff.user.username)
+#             print("fname ",i.user_faculty_staff.user.first_name)
+#             print("lname ",i.user_faculty_staff.user.last_name)
+#             print("fact ",i.user_faculty_staff.faculty)
+#         if i.user_person_responsible != None:
+#             print("----responsible-----")
+#             print("username ",i.user_person_responsible.user.username)
+#             print("fname ",i.user_person_responsible.user.first_name)
+#             print("lname ",i.user_person_responsible.user.last_name)
+#             print("fact ",i.user_person_responsible.faculty)
+#         print("หน่วยกิต ",i.credit)
+#         print("จำนวนที่เปิดรับ ",i.max_participants)   
+#         print("ลงทะเบียนจำนวน ",i.registered_count)
+#         print("สถานะ ",i.is_registration_open)
+#         print("อนุมัติ ",i.is_approved)
+#         print("เทอม ",i.semester)
+#         print("เทอม ",i.semester)
+#         print("เทอม ",i.semester)
+#         print('---------------------')
+
+#     return HttpResponse("test")
+
+def dashboard_api(request):
+    activities = db_create_activity.objects.all()
+    activities_data = []
+
+    for i in activities:
+        activity_data = {
+            "activity_name": i.activity_name,
+            "activity_type": i.activity_type,
+            "credit": i.credit,
+            "max_participants": i.max_participants,
+            "registered_count": i.registered_count,
+            "is_registration_open": i.is_registration_open,
+            "is_approved": i.is_approved,
+            "semester": i.semester,
+        }
+
+        if i.user_faculty_staff:
+            activity_data["staff"] = {
+                "username": i.user_faculty_staff.user.username,
+                "first_name": i.user_faculty_staff.user.first_name,
+                "last_name": i.user_faculty_staff.user.last_name,
+                "faculty": i.user_faculty_staff.faculty,
+            }
+        else:
+            activity_data["staff"] = None
+
+        if i.user_person_responsible:
+            activity_data["responsible"] = {
+                "username": i.user_person_responsible.user.username,
+                "first_name": i.user_person_responsible.user.first_name,
+                "last_name": i.user_person_responsible.user.last_name,
+                "faculty": i.user_person_responsible.faculty,
+            }
+        else:
+            activity_data["responsible"] = None
+
+        activities_data.append(activity_data)
+
+    return JsonResponse({"activities": activities_data}, safe=False)
 
 def dashboard2(request):
     selected_type = request.GET.get('activity_type', '')  # รับค่าที่ผู้ใช้เลือกจาก Dropdown
@@ -1488,6 +1565,7 @@ def homeAdmin(request):
                 selected_facultystaff.user.is_faculty_staff = False  # ตั้งค่า is_faculty_staff ของ User เป็น False
                 selected_facultystaff.user.save()  # บันทึกการเปลี่ยนแปลง
 
-    return render(request, 'Admin/home.html', {
-        'db': user_facultystaff  # ส่งข้อมูลทั้งหมดของ user_facultystaff ไปยัง template
+    return render(request, 'Administrator/home.html', {
+        'db': user_facultystaff , # ส่งข้อมูลทั้งหมดของ user_facultystaff ไปยัง template
+        'faculty_choices': faculty_choices[:]  # 
     })

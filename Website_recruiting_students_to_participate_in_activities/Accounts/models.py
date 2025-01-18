@@ -26,8 +26,8 @@ class UserStudent(models.Model):
     title = models.CharField(max_length=10, choices=title__choices, default="นาย")
     faculty = models.CharField(max_length=50, choices=faculty_choices, default="วิทยาศาสตร์")
 
-    def __str__(self) -> str:
-        return (f'{self.user, self.faculty, self.title }')
+    # def __str__(self) -> str:
+    #     return (f'{self.user, self.faculty, self.title }')
     
 #ผู้รับผิดชอบโครงการ
 class UserPerson_responsible_for_the_project(models.Model):
@@ -45,6 +45,6 @@ class UserFacultyStaff(models.Model):
     faculty = models.CharField(max_length=50, choices=faculty_choices, default="วิทยาศาสตร์")
     is_approved = models.BooleanField(default=False)  # เพิ่มฟิลด์นี้เพื่อเก็บค่าสถานะอนุมัติ
 
-    def __str__(self) -> str:
-        return (f'{self.user, self.faculty, self.title }')
+    # def __str__(self) -> str:
+    #     return (f'{self.user, self.faculty, self.title }')
     

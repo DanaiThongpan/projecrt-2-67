@@ -52,6 +52,7 @@ def Register(request):
     return render(request, 'Accounts/register.html', {
         'form1': form,
         'form2': form2,
+        'role':role
     })
 
 def RegisterFacultyStaff(request):
