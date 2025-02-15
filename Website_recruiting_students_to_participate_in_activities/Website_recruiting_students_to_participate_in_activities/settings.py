@@ -34,15 +34,20 @@ ALLOWED_HOSTS = ['*']
 # ]
 
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://9578-27-55-81-85.ngrok-free.app',
-    'https://danai.tongar.space',
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     'https://9578-27-55-81-85.ngrok-free.app',
+#     'https://danai.tongar.space',
+# ]
 
 # ALLOWED_HOSTS = [
 #     'localhost',
 #     '127.0.0.1',
 # ]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 # CSRF_TRUSTED_ORIGINS = [
 #     'http://localhost',

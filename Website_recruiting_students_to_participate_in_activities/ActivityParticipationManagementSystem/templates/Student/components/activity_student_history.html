@@ -15,7 +15,7 @@
         </tr>
     </thead>
     <tbody class="bg-white">
-        {% for activity in activity_history %}
+        {% for activity in activity_student_history %}
         <tr>
             <td class="border px-4 py-2 text-center">{{ activity.activity.activity_name }}</td>
             <td class="border px-4 py-2">{{ activity.registered_at|date:"d M Y" }}</td>

@@ -46,7 +46,13 @@
                 
                 <button id="userDropdown" class="flex items-center space-x-2 font-bold text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-user-round"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
-                    <div class="text-black-600 font-bold text-blue-500">{{ user.first_name }} {{ user.last_name }}</div>
+                    <div class="text-black-600 font-bold text-blue-500">
+                        สวัสดี {{ db2.user.first_name }} {{ db2.user.last_name }} (
+                            {% if db2 %}
+                                    เจ้าหน้าที่คณะ{{db2.faculty}}
+                            {% endif %}
+                        )
+                        </div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="5 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
 

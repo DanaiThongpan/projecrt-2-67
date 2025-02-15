@@ -9,46 +9,77 @@
         class="w-full md:mx-auto md:w-9/12  bg-white grid grid-cols-1 md:grid-cols-3 border px-4 md:p-10 rounded-xl shadow-2xl">
 
         <div class=" mx-auto md:col-span-2  md:border-r-2 md:border-b-0 border-b-2 border-gray-400">
-            <p class="text-2xl p-5">กิจกรรม {{i.activity_name}}</p>
+            <p class="text-2xl p-5">กิจกรรม {{activity_student_get_id.activity_name}}</p>
+            <p class="p-0.5 bg-amber-700 mx-5"></p>
+            <!-- <div class="flex justify-center shadow-xl rounded-lg shadow-slate-400 overflow-hidden h-fit m-5">
+                <img src="{{i.img_activity.url}}" alt="Recruitment_announcer/media/activity/images"
+                    class="object-cover    w-fit ">
+            </div> -->
+
+            <div class="text-xl font-light text-gray-600 p-5 gap-y-4 grid ">
+                <!-- <p>
+                    <label for="" class="text-yellow-700">
+                        เปิดให้ลงทะเบียนถึงวันที่
+                    </label>
+                    {{activity_student_get_id.due_date_registration}}
+                </p> -->
+                <p>
+                    <label for="" class="text-yellow-700">
+                        ผู้รับผิดชอบโครงการ
+                    </label>
+                    {% if activity_student_get_id.user_faculty_staff %}
+                        {{activity_student_get_id.user_faculty_staff.title}}
+                        {{activity_student_get_id.user_faculty_staff.user.first_name}}
+                        {{activity_student_get_id.user_faculty_staff.user.last_name}}
+                    {% elif activity_student_get_id.user_person_responsible %}
+                        {{activity_student_get_id.user_person_responsible.title}}
+                        {{activity_student_get_id.user_person_responsible.user.first_name}}
+                        {{activity_student_get_id.user_person_responsible.user.last_name}}
+                    {% endif %}                    
+                </p>
+                <p><label for="" class="text-yellow-700">จำนวนรับ</label> {{activity_student_get_id.max_participants}} คน</p>
+                <!-- <p><label for="" class="text-yellow-700">สถานที่จัดกิจกรรม</label> {{activity_student_get_id.place}}</p> -->
+                <p><label for="" class="text-yellow-700">ด้านที่</label> {{activity_student_get_id.activity_type}}</p>
+                <p><label for="" class="text-yellow-700">หน่วยกิตกิจกรรม</label> {{activity_student_get_id.credit}}</p>
+                <p><label for="" class="text-yellow-700">คำอธิบาย</label> {{activity_student_get_id.description}}</p>
+            </div>
             <p class="p-0.5 bg-amber-700 mx-5"></p>
             <div class="flex justify-center shadow-xl rounded-lg shadow-slate-400 overflow-hidden h-fit m-5">
-                <img src="{{i.img_activity.url}}" alt="Recruitment_announcer/media/activity/images"
+                <img src="{{activity_student_get_id.img_activity.url}}" alt="Recruitment_announcer/media/activity/images"
                     class="object-cover    w-fit ">
             </div>
 
-            <div class="text-xl font-light text-gray-600 p-5 gap-y-4 grid ">
-                <p><label for="" class="text-yellow-700">เปิดให้ลงทะเบียนถึงวันที่</label> {{i.due_date_registration}}
-                </p>
-                <p><label for="" class="text-yellow-700">ผู้รับผิดชอบโครงการ</label> {{i.user_person_responsible.title}}
-                    {{i.user_person_responsible.user.first_name}}
-                    {{i.user_person_responsible.user.last_name}}</p>
-                <p><label for="" class="text-yellow-700">จำนวนรับ</label> {{i.max_participants}} คน</p>
-                <p><label for="" class="text-yellow-700">สถานที่จัดกิจกรรม</label> {{i.place}}</p>
-                <p><label for="" class="text-yellow-700">ด้านที่</label> {{i.activity_type}}</p>
-                <p><label for="" class="text-yellow-700">หน่วยกิตกิจกรรม</label> {{i.credit}}</p>
-                <p><label for="" class="text-yellow-700">คำอธิบาย</label> {{i.description}}</p>
-            </div>
-
         </div>
-
         <div class="p-2 py-2 mx-2 mt-2 md:mt-0">
             <h2 class="text-xl font-bold text-center">วันที่จัดกิจกรรม</h2>
-            <div class="flex items-center ">
-                <div class="mix-blend-multiply bg-green-400 h-4 w-4 rounded-full"></div>
-                {% if i.start_date_activity.date == i.due_date_activity.date %}
-                <p class="m-4">{{i.start_date_activity.date}} <label for="" class="text-yellow-600">
-                        ({{i.start_date_activity.time}} - {{ i.due_date_registration.time }})</label></p>
-                {% else %}
-                <p class="m-4">{{i.start_date_activity.date}} <label for="" class="text-yellow-600">
-                        ({{i.start_date_activity.time}} - {{ i.due_date_registration.time }})</label></p>
-                {% endif %}
-            </div>
-            <p class="mx-8">เปิดให้ลงทะเบียน
-                {{i.due_date_registration.date}} <label for="" class="text-yellow-600">
-                    ({{ i.due_date_registration.time }})</label></p>
+            __________________________________________________
+            
+            <!-- วนลูปแสดงข้อมูลแต่ละ time_event -->
+            {% for time_event in time_events %}
+                <div class="flex items-center mb-4">  <!-- เพิ่ม mb-4 เพื่อเว้นระยะห่างระหว่างบรรทัด -->
+                    <div class="mix-blend-multiply bg-green-400 h-4 w-4 rounded-full"></div>
+                    <p class="m-4">
+                        {{ time_event.start_date_activity.date }}
+                        <label for="" class="text-yellow-600">
+                            <!-- แสดงเวลาในรูปแบบที่เป็นเวลาไทย -->
+                            ({% load tz %}{{ time_event.start_date_activity|timezone:"Asia/Bangkok"|date:"H:i" }} - 
+                            {% load tz %}{{ time_event.due_date_activity|timezone:"Asia/Bangkok"|date:"H:i" }})
+                        </label><br>
+                        สถานที่ {{time_event.place}}
+                    </p>
+                </div>
+            {% endfor %}
+        <!-- </div> -->
+
+            <p class="mx-8">เปิดให้ลงทะเบียนถึง
+                {{activity_student_get_id.due_date_registration.date}} 
+                <label for="" class="text-yellow-600">
+                    ({% load tz %}{{ activity_student_get_id.due_date_registration|timezone:"Asia/Bangkok"|date:"H:i" }})
+                </label>
+            </p>
 
             <div class="mx-8 mt-2">
-                <h2 class="my-4">นักศึกษาที่ลงทะเบียน {{ registered_students|length }} / {{ i.max_participants}} คน</h2>
+                <h2 class="my-4">(ลงทะเบียนแล้ว {{ registered_students|length }} คน)</h2>
                 <button class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-700 transition"
                     onclick="openModal('modelConfirm')">
                     ตรวจสอบรายชื่อ
@@ -60,7 +91,7 @@
 
             <div class="text-center mt-2 mx-8">
 
-                {% if i.is_registration_open == True %}
+                {% if activity_student_get_id.is_registration_open == True %}
                 <!-- แสดงข้อความว่าผู้ลงทะเบียนครบแล้ว -->
                 <div class="w-fit p-1 px-2 my-2 text-green-500">
                     เปิดรับสมัครอยู่
@@ -75,12 +106,12 @@
                         ยกเลิกการเข้าร่วมกิจกรรม
                     </button>
                 </form>
-                {% elif i.max_participants == i.registered_count %}
+                {% elif activity_student_get_id.max_participants == activity_student_get_id.registered_count %}
                 <!-- แสดงข้อความว่าผู้ลงทะเบียนครบแล้ว -->
                 <button type="button" class="w-full px-4 py-2 bg-red-500 text-white rounded-md cursor-not-allowed">
                     ผู้ลงทะเบียนครบแล้ว
                 </button>
-                {% elif i.is_registration_open != True %}
+                {% elif activity_student_get_id.is_registration_open != True %}
                 <!-- แสดงข้อความว่าผู้ลงทะเบียนครบแล้ว -->
                 <button type="button" class="w-full px-4 py-2 bg-red-500 text-white rounded-md cursor-not-allowed">
                     ปิดรับสมัครแล้ว
@@ -158,30 +189,30 @@
                         <tbody>
 
 
-                            {% for student in registered_students %}
+                            {% for registered_students in registered_students %}
                             <tr class="hover:bg-gray-50 border">
                                 <td class="px-6 py-4 text-sm text-gray-800">
                                     <p class="text-gray-900 whitespace-no-wrap">
-                                        {{ student.student.user.username }}
+                                        {{ registered_students.student.user.username }}
                                     </p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-800">
                                     <p class="text-gray-900 whitespace-no-wrap">
-                                        {{ student.student.title }}
+                                        {{ registered_students.student.title }}
                                     </p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-800">
                                     <p class="text-gray-900 whitespace-no-wrap">
-                                        {{student.student.user.first_name }}
+                                        {{ registered_students.student.user.first_name }}
                                     </p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-800">
                                     <p class="text-gray-900 whitespace-no-wrap">
-                                        {{student.student.user.last_name }}
+                                        {{ registered_students.student.user.last_name }}
                                     </p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-800">
-                                    <p class="text-gray-900 whitespace-no-wrap">{{ student.student.faculty}}
+                                    <p class="text-gray-900 whitespace-no-wrap">{{ registered_students.student.faculty }}
                                     </p>
                                 </td>
 

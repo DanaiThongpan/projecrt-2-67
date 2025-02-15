@@ -1,12 +1,12 @@
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from urllib import response
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
-from ActivityParticipationManagementSystem.forms import forms_activity_adduser, forms_create_activity
+from ActivityParticipationManagementSystem.forms import TimeEvent_activity, forms_activity_adduser, forms_create_activity
 from ActivityParticipationManagementSystem.models import db_create_activity, db_activity_adduser
 from Accounts.models import *
 from django.contrib import messages
@@ -26,10 +26,8 @@ def is_student(user):
 @login_required
 @user_passes_test(is_student, login_url='login')
 def homeStudent(request):
-    db = db_activity_adduser.objects.all()
     user_student = UserStudent.objects.get(user=request.user)
-    activity_all = db_create_activity.objects.all()
-    
+    activity_student = db_create_activity.objects.all()
 
     if 'show_popup' not in request.session:
         credits_needed = user_student.number_of_credits_required - user_student.number_of_credits_available
@@ -46,8 +44,8 @@ def homeStudent(request):
         request.session['show_popup'] = True
     
     return render(request, 'Student/home.html', {
-        'db': activity_all,
-        'std': db,
+        'user_student' : user_student,
+        'activity_student': activity_student,
         'act_choices': act_choices[:],
     })
 
@@ -56,34 +54,36 @@ from django.core.exceptions import ValidationError
 
 @login_required
 @user_passes_test(is_student, login_url='login')
-def activity(request, id):
-    activity_get_id = get_object_or_404(db_create_activity, pk=id)
+def activity_student(request, id):
+    activity_student_get_id = get_object_or_404(db_create_activity, pk=id)
     user_student = get_object_or_404(UserStudent, user=request.user)
-    existing_registration = db_activity_adduser.objects.filter(activity=activity_get_id, student=user_student).first()
-    registered_students = db_activity_adduser.objects.filter(activity=activity_get_id).select_related('student')
+    existing_registration = db_activity_adduser.objects.filter(activity=activity_student_get_id, student=user_student).first()
+    registered_students = db_activity_adduser.objects.filter(activity=activity_student_get_id).select_related('student')
+    # ดึงข้อมูล TimeEvent ทั้งหมดที่เกี่ยวข้องกับ activity
+    time_events = TimeEvent.objects.filter(activity_id=activity_student_get_id)
 
     def save_registration():
-        """ฟังก์ชันบันทึกการลงทะเบียน"""
-         # ถ้าไม่ใช่ผู้รับผิดชอบโครงการ ให้ตรวจสอบสถานะการลงทะเบียน
-        if not activity_get_id.is_registration_open:
+        #"""ฟังก์ชันบันทึกการลงทะเบียน"""
+        # ถ้าไม่ใช่ผู้รับผิดชอบโครงการ ให้ตรวจสอบสถานะการลงทะเบียน
+        if not activity_student_get_id.is_registration_open:
             raise ValidationError('Registration is closed for this activity.')  
         
         with transaction.atomic():
             # เพิ่มผู้ลงทะเบียนถ้ายังมีที่ว่าง
-            if activity_get_id.registered_count < activity_get_id.max_participants:
-                activity_get_id.registered_count += 1
-                activity_get_id.save()
-                db_activity_adduser.objects.create(student=user_student, activity=activity_get_id)
+            if activity_student_get_id.registered_count < activity_student_get_id.max_participants:
+                activity_student_get_id.registered_count += 1
+                activity_student_get_id.save()
+                db_activity_adduser.objects.create(student=user_student, activity=activity_student_get_id)
             else:
                 raise ValidationError('No more slots available for this activity.')
 
     def cancel_registration():
-        """ฟังก์ชันยกเลิกการลงทะเบียนและลด registered_count"""
+        #"""ฟังก์ชันยกเลิกการลงทะเบียนและลด registered_count"""
         with transaction.atomic():
-            if activity_get_id.registered_count > 0:
-                activity_get_id.registered_count -= 1
-                activity_get_id.is_registration_open = True  # เปิดรับสมัครอีกครั้งถ้ามีที่ว่าง
-                activity_get_id.save()
+            if activity_student_get_id.registered_count > 0:
+                activity_student_get_id.registered_count -= 1
+                activity_student_get_id.is_registration_open = True  # เปิดรับสมัครอีกครั้งถ้ามีที่ว่าง
+                activity_student_get_id.save()
             # ลบการลงทะเบียนนี้ออกจากฐานข้อมูล
             existing_registration.delete()
 
@@ -95,23 +95,22 @@ def activity(request, id):
             # ถ้ายังไม่ได้ลงทะเบียนและยังมีที่ว่าง ให้ลงทะเบียน
             save_registration()
 
-        return redirect('activity', id=id)
+        return redirect('activity_student', id=id)
 
-    return render(request, 'Student/activity.html', {
-        'i': activity_get_id,
+    return render(request, 'Student/activity_student.html', {
+        'activity_student_get_id': activity_student_get_id,
         'existing_registration': existing_registration,
         'registered_students': registered_students,
-        'd': user_student,
+        'time_events': time_events,  # ส่งข้อมูล TimeEvent มาที่ template
     })
 
-def activity_history(request):
+def activity_student_history(request):
     # ดึงประวัติการเข้าร่วมกิจกรรมของผู้ใช้ที่ล็อกอินอยู่
     user = request.user
-    activity_history = db_activity_adduser.objects.filter(student__user=user).select_related('activity')
+    activity_student_history = db_activity_adduser.objects.filter(student__user=user).select_related('activity')
 
-    return render(request, 'Student/activity_history.html', {
-        'activity_history' : activity_history,
-        'activity' : activity,
+    return render(request, 'Student/activity_student_history.html', {
+        'activity_student_history' : activity_student_history,
     })
 
 #################################################################################################################################################
@@ -132,29 +131,29 @@ def homePerson_responsible_for_the_project(request):
     # ตรวจสอบว่าผู้ใช้เลือกประเภทกิจกรรมอะไร และกรองข้อมูล
     if activity_type == 'all':
         # กรองกิจกรรมที่สร้างโดย user_person_responsible
-        activities = db_create_activity.objects.filter(user_person_responsible=person_responsible)
+        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible)
     elif activity_type == 'academic':
-        activities = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์")
+        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์")
     elif activity_type == 'sport':
-        activities = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="2 ด้านกีฬาหรือการส่งเสริมสุขภาพ")
+        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="2 ด้านกีฬาหรือการส่งเสริมสุขภาพ")
     elif activity_type == 'environment':
-        activities = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม")
+        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม")
     elif activity_type == 'moral':
-        activities = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="4 ด้านเสริมสร้างคุณธรรมและจริยธรรม")
+        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="4 ด้านเสริมสร้างคุณธรรมและจริยธรรม")
     elif activity_type == 'art_culture':
-        activities = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="5 ด้านส่งเสริมศิลปะและวัฒนธรรม")
+        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="5 ด้านส่งเสริมศิลปะและวัฒนธรรม")
     elif activity_type == 'other':
-        activities = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="6 ด้านกิจกรรมอื่นๆ")
+        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="6 ด้านกิจกรรมอื่นๆ")
 
     # การแจ้งเตือนกิจกรรมที่ได้รับการอนุมัติ
-    for activity in activities:
+    for activity in activity_person_responsible:
         if activity.is_approved:
             messages.info(request, f"กิจกรรม '{activity.activity_name}' ได้รับการอนุมัติหน่วยกิตแล้ว")
 
     # ส่งข้อมูลไปยังเทมเพลต
     return render(request, 'Person_responsible_for_the_project/home.html', {
-        'i': person_responsible,
-        'db': activities,
+        'db2': person_responsible,
+        'activity_person_responsible': activity_person_responsible,
         'act_choices': act_choices[:],
 
     })
@@ -170,11 +169,46 @@ def create_activity(request):
             activity = form.save(commit=False)
             activity.user_person_responsible = user_obj
             activity.save()
-            return redirect('homePerson_responsible_for_the_project')
-
+            # Redirect ไปยังหน้า create_activity_TimeEvent พร้อมส่ง activity_id
+            return redirect('create_activity_TimeEvent', activity_id=activity.id)
+    
     return render(request, 'Person_responsible_for_the_project/create_activity.html', {
         'form' : form
     })
+
+from datetime import timedelta
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import db_create_activity, TimeEvent
+from .forms import TimeEvent_activity
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
+def create_activity_TimeEvent(request, activity_id):
+    activity = get_object_or_404(db_create_activity, id=activity_id)
+    num_of_days = activity.number_of_days
+
+    if request.method == 'POST':
+        form = TimeEvent_activity(request.POST, request.FILES, num_of_days=num_of_days)
+        if form.is_valid():
+            for i in range(num_of_days):
+                time_event = TimeEvent(
+                    activity_id=activity,
+                    start_date_activity=form.cleaned_data[f'start_date_activity_{i}'],
+                    due_date_activity=form.cleaned_data[f'due_date_activity_{i}'],
+                    place=form.cleaned_data[f'place{i}']
+                )
+                time_event.save()
+            return redirect('homePerson_responsible_for_the_project')
+    else:
+        form = TimeEvent_activity(num_of_days=num_of_days)
+
+    return render(request, 'Person_responsible_for_the_project/create_activity_TimeEvent.html', {
+        'form': form,
+        'activity': activity
+    })
+
+
 
 from django.utils import timezone
 
@@ -198,12 +232,51 @@ def update_activity2(request, id):
 
             activity.save()  # บันทึกข้อมูลกิจกรรมหลังจากตรวจสอบ
             
-            return redirect('homePerson_responsible_for_the_project')
+            return redirect('update_activity_TimeEvent', activity_id=activity.id)
     
     # ถ้าไม่ใช่ POST method ให้แสดงฟอร์มแก้ไขกิจกรรม
     return render(request, 'Person_responsible_for_the_project/update_activity.html', {
         'form': form,
-        'i': activity_get_id,
+        'activity': activity_get_id,
+    })
+
+@login_required
+@user_passes_test(is_person_responsible_for_the_project, login_url='login')
+def update_activity_TimeEvent(request, activity_id):
+    activity_get_id = db_create_activity.objects.get(id=activity_id)
+    time_events = TimeEvent.objects.filter(activity_id=activity_id)
+
+    if request.method == 'POST':
+        form = TimeEvent_activity(request.POST, request.FILES, instance=activity_get_id)
+        
+        if form.is_valid():
+            try:
+                # บันทึกข้อมูลกิจกรรม
+                activity = form.save(commit=False)
+                activity.save()
+
+                # อัปเดตข้อมูล TimeEvent
+                for time_event in time_events:
+                    time_event.place = request.POST.get(f'place_{time_event.id}')
+                    time_event.start_date_activity = request.POST.get(f'start_date_activity_{time_event.id}')
+                    time_event.due_date_activity = request.POST.get(f'due_date_activity_{time_event.id}')
+                    time_event.save()
+
+                # Redirect ไปยังหน้า homePerson_responsible_for_the_project
+                return redirect('homePerson_responsible_for_the_project')
+            except Exception as e:
+                # แสดงข้อผิดพลาดใน console
+                print(f"เกิดข้อผิดพลาด: {e}")
+        else:
+            # แสดงข้อผิดพลาดของฟอร์มใน console
+            print("ฟอร์มไม่ถูกต้อง:", form.errors)
+    else:
+        form = TimeEvent_activity(instance=activity_get_id)
+
+    return render(request, 'Person_responsible_for_the_project/update_activity_TimeEvent.html', {
+        'form': form,
+        'activity': activity_get_id,
+        'time_events': time_events,
     })
 
 @login_required
@@ -308,18 +381,19 @@ from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from .models import db_activity_adduser
+from .models import db_activity_adduser, TimeEvent
 
 @login_required
 @user_passes_test(is_person_responsible_for_the_project, login_url='login')
 def generate_pdf(request, id):
     # ดึงข้อมูลจากฐานข้อมูลโดยใช้ activity_id
     db_user = db_activity_adduser.objects.filter(activity_id=id)
+    time_events = TimeEvent.objects.filter(activity_id=id)  # ดึงข้อมูล TimeEvent
 
     # สร้าง buffer เพื่อเก็บข้อมูลของไฟล์ PDF
     buffer = BytesIO()
@@ -327,7 +401,10 @@ def generate_pdf(request, id):
     # สร้าง PDF document
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
     
-    pdf.title = ('แบบบันทึกการเข้าร่วมกิจกรรม ' + db_user.first().activity.activity_name)
+    if db_user.exists():
+        pdf.title = ('แบบบันทึกการเข้าร่วมกิจกรรม ' + db_user.first().activity.activity_name)
+    else:
+        pdf.title = 'แบบบันทึกการเข้าร่วมกิจกรรม'
 
     story = []
 
@@ -351,45 +428,50 @@ def generate_pdf(request, id):
     # หัวข้อรายงาน
     if db_user.exists():
         activity_name = db_user.first().activity.activity_name
-        place = db_user.first().activity.place
 
-        # เพิ่มหัวข้อในตาราง
-        story.append(Paragraph(f"รายชื่อผู้เข้าร่วมกิจกรรม {activity_name}", styles['CenteredStyle']))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph("วันที่ 16 สิงหาคม 2566", styles['CenteredStyle']))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph("เวลา 11.00 น. - 16.00 น.", styles['CenteredStyle']))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph(f"ณ {db_user.first().activity.place}", styles['CenteredStyle']))
-        story.append(Spacer(1, 24))
-        story.append(Spacer(1, 24))
-        
-        # สร้างหัวตาราง
-        data = [['ลำดับ', 'ชื่อ-สกุล', 'รหัสนักศึกษา', 'คณะ', 'ลงชื่อ']]
+        # วนลูปแสดงข้อมูล TimeEvent
+        for time_event in time_events:
+            # แปลงเวลาให้เป็นเวลาในไทย
+            start_date_activity_thai = timezone.localtime(time_event.start_date_activity)
+            due_date_activity_thai = timezone.localtime(time_event.due_date_activity)
+            # หัวข้อสำหรับแต่ละ TimeEvent
+            story.append(Paragraph(f"รายชื่อผู้เข้าร่วมกิจกรรม {activity_name}", styles['CenteredStyle']))
+            story.append(Spacer(1, 12))
+            story.append(Paragraph(f"สถานที่: {time_event.place}", styles['CenteredStyle']))
+            story.append(Paragraph(f"วันที่เริ่มกิจกรรม: {start_date_activity_thai.strftime('%d/%m/%Y')}", styles['CenteredStyle']))
+            story.append(Paragraph(f"เวลา: {start_date_activity_thai.strftime('%H:%M')} - {due_date_activity_thai.strftime('%H:%M')}", styles['CenteredStyle']))
+            story.append(Spacer(1, 12))
+            # formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+            # สร้างหัวตาราง
+            data = [['ลำดับ', 'ชื่อ-สกุล', 'รหัสนักศึกษา', 'คณะ', 'ลงชื่อ']]
 
-        # เพิ่มข้อมูลในตาราง
-        for index, user in enumerate(db_user, start=1):
-            full_name = f"{user.student.title} {user.student.user.first_name} {user.student.user.last_name}"
-            student_id = user.student.user.username
-            faculty = user.student.faculty
-            data.append([str(index), full_name, student_id, faculty, ""])
+            # เพิ่มข้อมูลในตาราง
+            for index, user in enumerate(db_user, start=1):
+                full_name = f"{user.student.title} {user.student.user.first_name} {user.student.user.last_name}"
+                student_id = user.student.user.username
+                faculty = user.student.faculty
+                data.append([str(index), full_name, student_id, faculty, ""])
 
-        # สร้างตาราง
-        table = Table(data, colWidths=[50, 150, 100, 100, 100])
+            # สร้างตาราง
+            table = Table(data, colWidths=[50, 150, 100, 100, 100])
 
-        # กำหนดสไตล์ให้กับตาราง
-        table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, -1), 'THSarabunNew'),  # ใช้ฟอนต์ไทยสำหรับทั้งตาราง
-            ('FONTSIZE', (0, 0), (-1, 0), 16),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('BACKGROUND', (0, 0), (-1, 0), colors.white),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ]))
+            # กำหนดสไตล์ให้กับตาราง
+            table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), 'THSarabunNew'),  # ใช้ฟอนต์ไทยสำหรับทั้งตาราง
+                ('FONTSIZE', (0, 0), (-1, 0), 16),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.white),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ]))
 
-        # เพิ่มตารางลงในเนื้อหา
-        story.append(table)
+            # เพิ่มตารางลงในเนื้อหา
+            story.append(table)
+            story.append(Spacer(1, 24))  # เพิ่มช่องว่างระหว่างตาราง
+
+            # เพิ่มหน้าใหม่สำหรับแต่ละ TimeEvent
+            story.append(PageBreak())
 
     else:
         story.append(Paragraph("ไม่พบข้อมูลผู้เข้าร่วมกิจกรรม", styles['CenteredStyle']))
@@ -541,28 +623,28 @@ def generate_registration_form(request, id):
         return f"{day} {month} {year}"
 
     # ดึงวันที่จากฐานข้อมูล
-    start_date = db_user.first().activity.start_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
+    # start_date = db_user.first().activity.start_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
     # แปลงวันที่เป็นภาษาไทย
-    formatted_date = format_date_thai(start_date)
-    formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+    # formatted_date = format_date_thai(start_date)
+    # formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
 
     # ใช้ใน PDF วันที่เริ่มและสิ้นสุดกิจกรรม
     pdf.drawString(2 * cm, 18.5 * cm, "วันที่เริ่ม ________________")
-    pdf.drawString(3.5 * cm, 18.5 * cm, formatted_date)
+    # pdf.drawString(3.5 * cm, 18.5 * cm, formatted_date)
     pdf.drawString(6 * cm, 18.5 * cm, "เวลา ________________________")
-    pdf.drawString(8.5 * cm, 18.5 * cm, formatted_date_time)
+    # pdf.drawString(8.5 * cm, 18.5 * cm, formatted_date_time)
 
     # ดึงวันที่จากฐานข้อมูล  
-    start_date = db_user.first().activity.due_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
-    formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+    # start_date = db_user.first().activity.due_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
+    # formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
     
     # แปลงวันที่เป็นภาษาไทย
-    formatted_date = format_date_thai(start_date)
+    # formatted_date = format_date_thai(start_date)
     pdf.drawString(11 * cm, 18.5 * cm, "วันที่สิ้นสุด __________________")
-    pdf.drawString(13 * cm, 18.5 * cm, formatted_date)
+    # pdf.drawString(13 * cm, 18.5 * cm, formatted_date)
     # pdf.line(12.8 * cm, 18.4 * cm, 15.5 * cm, 18.4 * cm)
     pdf.drawString(15.7 * cm, 18.5 * cm, "เวลา ____________________")
-    pdf.drawString(17.5 * cm, 18.5 * cm, formatted_date_time)
+    # pdf.drawString(17.5 * cm, 18.5 * cm, formatted_date_time)
     # pdf.drawString(17.5 * cm, 18.5 * cm, "13.00")
     # pdf.line(17.4 * cm, 18.4 * cm, 19 * cm, 18.4 * cm)
 
@@ -671,7 +753,7 @@ def generate_registration_form(request, id):
 
     pdf.drawString(4.2 * cm, 5.5 * cm, "วันที่ ___________________")
     pdf.drawString(12.2 * cm, 5.5 * cm, "วันที่ ____________________")
-    pdf.drawString(13.5 * cm, 5.5 * cm, formatted_date)
+    # pdf.drawString(13.5 * cm, 5.5 * cm, formatted_date)
     pdf.rect(2 * cm, 1 * cm, 6 * cm, 4 * cm)
     pdf.rect(8 * cm, 1 * cm, 6 * cm, 4 * cm)
     pdf.rect(14 * cm, 1 * cm, 6 * cm, 4 * cm)
@@ -788,10 +870,36 @@ def create_activity_by_faculty_staff(request):
             activity = form.save(commit=False)
             activity.user_faculty_staff = user_obj
             activity.save()
-            return redirect('homeFacultyStaff')
+            return redirect('create_activity_TimeEvent_by_faculty_staff', activity_id=activity.id)
 
     return render(request, 'FacultyStaff/create_activity_by_faculty_staff.html', {
         'form' : form
+    })
+
+@login_required
+@user_passes_test(is_faculty_staff, login_url='login')
+def create_activity_TimeEvent_by_faculty_staff(request, activity_id):
+    activity = get_object_or_404(db_create_activity, id=activity_id)
+    num_of_days = activity.number_of_days
+
+    if request.method == 'POST':
+        form = TimeEvent_activity(request.POST, request.FILES, num_of_days=num_of_days)
+        if form.is_valid():
+            for i in range(num_of_days):
+                time_event = TimeEvent(
+                    activity_id=activity,
+                    start_date_activity=form.cleaned_data[f'start_date_activity_{i}'],
+                    due_date_activity=form.cleaned_data[f'due_date_activity_{i}'],
+                    place=form.cleaned_data[f'place{i}']
+                )
+                time_event.save()
+            return redirect('homeFacultyStaff')
+    else:
+        form = TimeEvent_activity(num_of_days=num_of_days)
+
+    return render(request, 'FacultyStaff/create_activity_TimeEvent_by_faculty_staff.html', {
+        'form': form,
+        'activity': activity
     })
 
 from django.utils import timezone
@@ -1274,28 +1382,33 @@ def generate_registration_form2(request, id):
 ################################################################################################
 ################################################################################################
 ################################################################################################
+from django.db.models import Q
 @login_required
 @user_passes_test(is_faculty_staff, login_url='login')
 def homeFacultyStaff(request):
+    # activity_get_id = request.GET.get('student', 'all')
+    # registered_students = db_activity_adduser.objects.filter(activity=activity_get_id).select_related('student')
+
+       # ดึงข้อมูลเจ้าหน้าที่คณะที่ล็อกอิน
+    user_faculty_staff = get_object_or_404(UserFacultyStaff, user=request.user)
+    # registered_students = db_activity_adduser.objects.filter(activity=activity_get_id).select_related('student')
+
     # รับค่าประเภทกิจกรรมจาก URL parameter
-
     activity_type = request.GET.get('activity_type', 'all')
+    # registered_students = db_activity_adduser.objects.filter(activity=activity_type).select_related('student')
 
-    # ตรวจสอบว่าผู้ใช้เลือกประเภทกิจกรรมอะไร และกรองข้อมูล
+    # กรองข้อมูลกิจกรรมตามเงื่อนไข
     if activity_type == 'all':
-        activities = db_create_activity.objects.filter()
-    elif activity_type == 'academic':
-        activities = db_create_activity.objects.filter(activity_type="1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์")
-    elif activity_type == 'sport':
-        activities = db_create_activity.objects.filter(activity_type="2 ด้านกีฬาหรือการส่งเสริมสุขภาพ")
-    elif activity_type == 'environment':
-        activities = db_create_activity.objects.filter(activity_type="3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม")
-    elif activity_type == 'moral':
-        activities = db_create_activity.objects.filter(activity_type="4 ด้านเสริมสร้างคุณธรรมและจริยธรรม")
-    elif activity_type == 'art_culture':
-        activities = db_create_activity.objects.filter(activity_type="5 ด้านส่งเสริมศิลปะและวัฒนธรรม")
-    elif activity_type == 'other':
-        activities = db_create_activity.objects.filter(activity_type="6 ด้านกิจกรรมอื่นๆ")
+        activities = db_create_activity.objects.filter(
+            Q(user_faculty_staff=user_faculty_staff) |  # กิจกรรมที่ประกาศโดยเจ้าหน้าที่คณะ
+            Q(user_person_responsible__faculty=user_faculty_staff.faculty)  # กิจกรรมที่ผู้รับผิดชอบอยู่ในคณะเดียวกัน
+        )
+    else:
+        activities = db_create_activity.objects.filter(
+            Q(user_faculty_staff=user_faculty_staff) | 
+            Q(user_person_responsible__faculty=user_faculty_staff.faculty),
+            activity_type=activity_type  # กรองตามประเภทกิจกรรมที่เลือก
+        )
             
     # ตรวจสอบว่ามีการกดปุ่มอนุมัติหรือไม่
     if request.method == 'POST':
@@ -1343,7 +1456,9 @@ def homeFacultyStaff(request):
 
     return render(request, 'FacultyStaff/home.html', {
         'db': activities,
+        'db2': user_faculty_staff,
         'act_choices': act_choices[:],
+        'registered_students' : activities,
     })
 
 from django.http import JsonResponse,HttpResponse

@@ -8,15 +8,17 @@ from django.urls import path
 urlpatterns = [
     path('homeStudent/', homeStudent, name='homeStudent'),
     path('homePerson_responsible_for_the_project/', homePerson_responsible_for_the_project, name='homePerson_responsible_for_the_project'),
-    path('homeStudent/activity/<int:id>/', activity, name='activity'),
-    path('homeStudent/activity_history/', activity_history, name='activity_history'),
+    path('homeStudent/activity_student/<int:id>/', activity_student, name='activity_student'),
+    path('homeStudent/activity_student_history/', activity_student_history, name='activity_student_history'),
 
     # URL สำหรับดาวน์โหลดไฟล์ CSV
     path('download_csv/<int:activity_id>/', download_activity_csv, name='download_activity_csv'),
 
     path('create_activity/', create_activity, name='create_activity'),
+    path('create_activity_TimeEvent/<int:activity_id>/', create_activity_TimeEvent, name='create_activity_TimeEvent'),
     path('homePerson_responsible_for_the_project/activity2/<int:id>/', activity2, name="activity2"),
     path('homePerson_responsible_for_the_project/update_activity/<int:id>/', update_activity2, name="update_activity2"),
+    path('homePerson_responsible_for_the_project/update_activity_TimeEvent/<int:activity_id>/', update_activity_TimeEvent, name="update_activity_TimeEvent"),
     # path('activity_crateby_user2/', activity_crateby_user2, name='activity_crateby_user2'),
 
     path('homePerson_responsible_for_the_project/delete_activity/<int:id>/', delete_activity, name='delete_activity'),
@@ -33,6 +35,7 @@ urlpatterns = [
     path('homeFacultyStaff/', homeFacultyStaff, name='homeFacultyStaff'),
     path('homeActivity/', homeActivity, name='homeActivity'),
     path('create_activity_by_faculty_staff/', create_activity_by_faculty_staff, name='create_activity_by_faculty_staff'),
+    path('create_activity_TimeEvent_by_faculty_staff/<int:activity_id>/', create_activity_TimeEvent_by_faculty_staff, name='create_activity_TimeEvent_by_faculty_staff'),
 
     path('homeActivity/generate_pdf2/<int:id>/', generate_pdf2, name='generate_pdf2'),
     path('homeActivity/generate_registration_form2/<int:id>/', generate_registration_form2, name='generate_registration_form2'),

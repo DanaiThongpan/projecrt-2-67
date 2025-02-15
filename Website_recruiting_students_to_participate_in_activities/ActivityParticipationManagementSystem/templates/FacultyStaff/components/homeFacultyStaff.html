@@ -5,7 +5,7 @@
 
 <div class="container mx-auto">
     <!-- Filters -->
-    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
         <div>
             <label for="facultyFilter" class="block text-lg font-semibold text-gray-700 mb-2">เลือกประเภทกิจกรรม</label>
             <select id="facultyFilter"
@@ -14,8 +14,15 @@
                 {% for fs in act_choices %}
                 <option value="{{fs.0}}">{{fs.0}}</option>
                 {% endfor %}
-                <!-- <option value="บริหารธุรกิจ">บริหารธุรกิจ</option>
-                <option value="วิทยาศาสตร์">วิทยาศาสตร์</option> -->
+            </select>
+        </div>
+        <div>
+            <label for="statusFilter2" class="block text-lg font-semibold text-gray-700 mb-2">ผู้ที่ประกาศ</label>
+            <select id="statusFilter2"
+                class="block w-full bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded-lg shadow focus:outline-none focus:ring focus:ring-blue-300">
+                <option value="">ทั้งหมด</option>
+                <option value="เจ้าหน้าที่คณะ">เจ้าหน้าที่คณะ</option>
+                <option value="ผู้รับผิดชอบโครงการ">ผู้รับผิดชอบโครงการ</option>
             </select>
         </div>
         <div>
@@ -54,18 +61,19 @@
             </div>
         </div>
 
-        <div class="mx-5 border rounded-lg overflow-hidden overflow-x-auto shadow-md">
+        <div class="mx-5 border rounded-lg overflow-hidden overflow-x-auto shadow-md text-center">
             <table id="example" class="w-full table-auto">
                 <thead class="from-blue-600 via-blue-800 to-blue-500 bg-gradient-to-r text-white font-semibold">
                     <tr>
-                        <th class="px-6 py-4 text-left text-sm uppercase">รูปกิจกรรม</th>
-                        <th class="px-6 py-4 text-left text-sm uppercase">ชื่อกิจกรรม</th>
-                        <th class="px-6 py-4 text-left text-sm uppercase">ประเภทกิจกรรม</th>
-                        <th class="px-6 py-4 text-left text-sm uppercase">จำนวนผู้ลงทะเบียน</th>
-                        <th class="px-6 py-4 text-left text-sm uppercase">เอกสาร</th>
-                        <th class="px-6 py-4 text-left text-sm uppercase">ดาวน์โหลด</th>
-                        <th class="px-6 py-4 text-left text-sm uppercase">อนุมัติ</th>
-                        <th class="px-6 py-4 text-left text-sm uppercase">สถานะ</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">รูปกิจกรรม</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">ชื่อกิจกรรม</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">ประเภทกิจกรรม</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">ประกาศโดย</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">จำนวนผู้ลงทะเบียน</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">เอกสาร</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">ดาวน์โหลด</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">อนุมัติ</th>
+                        <th class="px-6 py-4 text-center text-sm uppercase">สถานะ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,8 +94,22 @@
                             <p class="text-gray-900 whitespace-no-wrap">{{ i.activity_type }}</p>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-800">
-                            <p class="text-gray-900 whitespace-no-wrap">{{i.max_participants}} / {{i.registered_count}}
+                            <p class="text-gray-900 whitespace-no-wrap">
+                                {% if i.user_faculty_staff %}
+                                    เจ้าหน้าที่คณะ<br>
+                                    {{ i.user_faculty_staff.faculty }}
+                                {% elif i.user_person_responsible %}
+                                    ผู้รับผิดชอบโครงการ<br> 
+                                    คณะ{{ i.user_person_responsible.faculty }}
+                                {% else %}
+                                    ไม่ระบุ
+                                {% endif %}
                             </p>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-800">
+                            <button class="text-gray-900 whitespace-no-wrap">
+                                {{i.max_participants}} / {{i.registered_count}}
+                            </button>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-800">
                             {% if i.pdf_files.all %}
@@ -97,13 +119,15 @@
                                     PDF</button>
                             </form>
                             {% else %}
-                            <span class="bg-gray-500/75 text-white px-3 py-1 rounded-full">ยังไม่มีเอกสารแนบ</span>
+                            <span class="bg-gray-500/75 text-white px-3 py-1 rounded-full">รอส่ง</span>
                             {% endif %}
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-800"><a href="{% url 'download_activity_csv' i.id %}"
-                                class="text-blue-500 hover:underline">
-                                ดาวน์โหลดไฟล์รายชื่อ, เพิ่มหน่วยกิต
-                            </a></td>
+                        <td class="px-6 py-4 text-sm text-gray-800">
+                            <a href="{% url 'download_activity_csv' i.id %}"
+                                class="text-blue-500 hover:underline"> 
+                                <br>ดาวน์โหลดไฟล์รายชื่อ
+                            </a>
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-800 text-nowrap">
                             {% if not i.is_approved %}
                             <form method="post">
@@ -257,7 +281,12 @@
         // ฟิลเตอร์ตามสถานะ
         $('#statusFilter').on('change', function () {
             const selectedStatus = $(this).val();
-            table.column(7).search(selectedStatus).draw();
+            table.column(8).search(selectedStatus).draw();
+        });
+
+        $('#statusFilter2').on('change', function () {
+            const selectedStatus2 = $(this).val();
+            table.column(3).search(selectedStatus2).draw();
         });
 
         table.on('draw', function () {

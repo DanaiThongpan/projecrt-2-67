@@ -32,7 +32,13 @@
                 
                 <button id="userDropdown" class="flex items-center space-x-2 font-bold text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-user-round"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
-                    <div class="text-black-600 font-bold text-blue-500">{{ user.first_name }} {{ user.last_name }}</div>
+                    <div class="text-black-600 font-bold text-blue-500">
+                        สวัสดี {{ user_student.user.first_name }} {{ user_student.user.last_name }} (
+                            {% if user_student %}
+                                    นักศึกษาคณะ{{user_student.faculty}}
+                            {% endif %}
+                        )
+                    </div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="5 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
 
@@ -40,7 +46,7 @@
                     <div class="py-1">
                         <a href="{% url 'homeStudent' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">หน้าแรก</a>
                         <a href="{% url 'profileStudent' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ข้อมูลส่วนตัว</a>
-                        <a href="{% url 'activity_history' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ประวัติการเข้าร่วมกิจกรรม</a>
+                        <a href="{% url 'activity_student_history' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ประวัติการเข้าร่วมกิจกรรม</a>
                         <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">ออกจากระบบ</a>
                     </div>
                 </div>

@@ -11,35 +11,6 @@
         {% endif %}
         <h1 class="text-2xl font-normal text-gray-900 mb-2 text-center">งานกิจกรรม</h1>
     </div>
-    <!-- <div class="flex justify-between items-center px-6 container mx-auto">
-        <div
-            class="container mx-auto p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {% for i in db %}
-            <div
-                class="p-4 flex flex-col items-center bg-white border rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-                <img src="{{i.img_activity.url}}" alt="media/activity/images"
-                    class="w-full h-full object-cover rounded-lg cursor-pointer"
-                    onclick="window.location.href='activity/{{ i.id }}/'" />
-                <div class="mt-4">
-                    <p class="text-xl font-semibold text-center cursor-pointer"
-                        onclick="window.location.href='activity/{{ i.id }}/'">{{i.activity_name}}</p>
-                    <p class="text-sm">{{i.start_date_activity}} - {{i.due_date_activity.time}}</p>
-                    {% if i.registered_count >= i.max_participants %}
-                    <p class="text-red-500 text-center mt-2">จำนวนผู้ลงทะเบียนครบแล้ว</p>
-                    {% elif i.is_registration_open != True %}
-                    <p class="text-red-500 text-center mt-2">ปิดรับสมัครแล้ว</p>
-                    {% else %}
-                    <p class="text-center mt-2 cursor-pointer" onclick="window.location.href='activity/{{ i.id }}/'">
-                        รายละเอียดเพิ่มเติม &raquo;</p>
-                    {% endif %}
-                    <div class="mt-2 hidden">
-                        <p>{{i.description}}</p>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div> -->
 
     <div class="container mx-auto min-h-screen h-full flex-col justify-between p-2">
         <!-- Filters -->
@@ -104,32 +75,32 @@
 
         <!-- Card Container -->
         <div id="card-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {% for i in db %}
+            {% for activity in activity_student %}
             <div id="card-act"
                 class="flex flex-col items-center bg-white border rounded-lg shadow-xl transition duration-300 ease-in-out transform card"
-                data-status="{% if i.registered_count >= i.max_participants %}ผู้ลงทะเบียนครบแล้ว{% elif not i.is_registration_open %}ปิดรับสมัครแล้ว{% else %}เปิดรับสมัคร{% endif %}"
-                data-type="{{ i.activity_type }}" data-start-date="{{ i.due_date_registration|date:'Y-m-d\\TH:i:s' }}"
-                data-act="{{i.activity_name}}">
+                data-status="{% if activity.registered_count >= activity.max_participants %}ผู้ลงทะเบียนครบแล้ว{% elif not activity.is_registration_open %}ปิดรับสมัครแล้ว{% else %}เปิดรับสมัคร{% endif %}"
+                data-type="{{ activity.activity_type }}" data-start-date="{{ activity.due_date_registration|date:'Y-m-d\\TH:i:s' }}"
+                data-act="{{ activity.activity_name }}">
 
-                <img src="{{ i.img_activity.url }}" alt="media/activity/images"
+                <img src="{{ activity.img_activity.url }}" alt="media/activity/images"
                     class="w-full h-72 object-cover rounded-t-lg cursor-pointer"
-                    onclick="window.location.href='activity/{{ i.id }}/'" />
+                    onclick="window.location.href='activity_student/{{ activity.id }}/'" />
                 <p id="link-detail"
                     class="text-center bg-opacity-60 text-white -mt-10 cursor-pointer duration-300 bg-slate-800 w-full p-2"
-                    onclick="window.location.href='activity/{{ i.id }}/'">
+                    onclick="window.location.href='activity_student/{{ activity.id }}/'">
                     รายละเอียดเพิ่มเติม &raquo;</p>
                 <div class="my-4">
                     <p class="text-xl font-semibold text-center cursor-pointer"
-                        onclick="window.location.href='activity/{{ i.id }}/'"> กิจกรรม {{ i.activity_name }}</p>
-                    <p class="text-sm">วันที่ {{ i.start_date_activity }} - {{ i.due_date_activity.time }} น.</p>
+                        onclick="window.location.href='activity_student/{{ activity.id }}/'"> กิจกรรม {{ activity.activity_name }}</p>
+                    <p class="text-sm">วันที่ {{ activity.start_date_activity }} - {{ activity.due_date_activity.time }} น.</p>
 
                     <div class="mt-2">
-                        <p>วันที่รับสมัคร {{ i.due_date_registration.date }}</p>
+                        <p>วันที่รับสมัคร {{ activity.due_date_registration.date }}</p>
                     </div>
 
-                    {% if i.registered_count >= i.max_participants %}
+                    {% if activity.registered_count >= activity.max_participants %}
                     <p class="text-red-500 text-center mt-2">จำนวนผู้ลงทะเบียนครบแล้ว</p>
-                    {% elif not i.is_registration_open %}
+                    {% elif not activity.is_registration_open %}
                     <p class="text-red-500 text-center mt-2">ปิดรับสมัครแล้ว</p>
                     {% else %}
 
