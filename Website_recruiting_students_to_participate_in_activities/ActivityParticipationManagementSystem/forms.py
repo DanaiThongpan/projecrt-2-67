@@ -1,8 +1,5 @@
 from django import forms
-# from django.db import models
-# from Accounts.forms import UserStudentrRegistrationForm
 from Accounts.models import User, UserPerson_responsible_for_the_project
-# from django.contrib.auth.forms import UserChangeForm
 
 # Create your models here.
     
@@ -13,16 +10,12 @@ class forms_create_activity(forms.ModelForm):
         model = db_create_activity
         fields = [
             'img_activity',
-            # 'user_faculty_staff',
-            # 'user_person_responsible',
+            'academic_year',
             'semester',
             'activity_name',
             'activity_type',
             'due_date_registration',
             'max_participants',
-            # 'place',
-            # 'start_date_activity',
-            # 'due_date_activity',
             'description',
             'credit',
             'number_of_days',
@@ -30,24 +23,18 @@ class forms_create_activity(forms.ModelForm):
 
         labels = {
             'img_activity' : 'รูปกิจกรรม ',
+            'academic_year' : 'ปีการศึกษา ',
             'activity_name' : 'ชื่อกิจกรรม ',
             'activity_type' : 'ด้านที่ ',
             'due_date_registration' : 'เปิดให้ลงทะเบียนถึงวันที่',
-            # 'start_date_create_activity' : 'วันที่เปิดรับสมัคร ',
-            # 'due_date_create_activity' : 'วันที่ปิดรับสมัคร ',
             'max_participants' : 'จำนวนเป้าหมาย ',
-            # 'place' : 'สถานที่จัดกิจกรรม ',
-            # 'start_date_activity' : 'วันที่จัดกิจกรรม ',
-            # 'due_date_activity' : 'วันที่สิ้นสุดกิจกรรม ',
+            'semester' : 'เทอม ',
             'description' : 'คำอธิบาย ',
-            'credit' : 'หน่วยกิจกรรม',
+            'credit' : 'จำนวนหน่วยกิจกรรม',
+            'number_of_days' : 'จำนวนวันที่จัดกิจกรรม',
         }
 
         widgets = {
-            # 'start_date_create_activity': forms.DateTimeInput(format='%Y-%m-%d %H:%M:%S', attrs={'type': 'datetime-local'}),
-            # 'due_date_create_activity': forms.DateTimeInput(format='%Y-%m-%d %H:%M:%S', attrs={'type': 'datetime-local'}),
-            # 'start_date_activity': forms.DateTimeInput(format='%Y-%m-%d %H:%M:%S', attrs={'type': 'datetime-local'}),
-            # 'due_date_activity': forms.DateTimeInput(format='%Y-%m-%d %H:%M:%S', attrs={'type': 'datetime-local'}),
             'due_date_registration': forms.DateTimeInput(format='%Y-%m-%d %H:%M:%S', attrs={'type': 'datetime-local'}),
         }
 

@@ -1,82 +1,12 @@
-<!-- <div class="pt-24 px-8 p-6 bg-gray-100">
-    <h1 class="text-2xl font-light text-gray-900 mb-6 text-center">กิจกรรมทั้งหมด</h1>
-</div>
-<body class="bg-gray-100 text-gray-800">
-    <div class="flex justify-center items-center">
-        <div class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
-            <div class="relative h-96">
-                <canvas id="activityChart" class="absolute inset-0 w-full h-full"></canvas>
-            </div>
-        </div>
-    </div>
-
-<script>
-        // สร้าง labels และ data จาก Django context
-        const labels = [
-            {% for stat in activity_stats %}
-                "{{ stat.activity_type }}",  // ชื่อกิจกรรม
-            {% endfor %}
-        ];
-
-        const data = [
-            {% for stat in activity_stats %}
-                {{ stat.count }},  // จำนวนของกิจกรรม
-            {% endfor %}
-        ];
-
-        var ctx = document.getElementById('activityChart').getContext('2d');
-        var activityChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: labels,  // ใช้ labels ที่ส่งจาก Django
-                datasets: [{
-                    label: '# of Participants',
-                    data: data,  // ใช้ data ที่ส่งจาก Django
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    </script>
-</body>
-</html> -->
-
-
-
-
-
-
-
-
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 <body class="bg-gray-100 mt-40 min-h-screen h-full md:mt-20">
     <div class="container mx-auto p-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
@@ -85,35 +15,37 @@
         <div class="flex flex-wrap gap-4 mb-6">
             <div>
                 <label for="activityTypeFilter" class="block text-sm font-semibold text-gray-700 mb-2">ประเภทกิจกรรม</label>
-                <select id="activityTypeFilter"
-                    class="block bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 rounded-lg shadow focus:outline-none focus:ring focus:ring-blue-300">
+                <select id="activityTypeFilter" class="block bg-white border border-gray-300 px-4 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">ทั้งหมด</option>
                 </select>
             </div>
 
             <div>
-                <label for="statusFilter" class="block text-sm font-semibold text-gray-700 mb-2">สถานะการลงทะเบียน</label>
-                <select id="statusFilter"
-                    class="block bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 rounded-lg shadow focus:outline-none focus:ring focus:ring-blue-300">
+                <label for="yearFilter" class="block text-sm font-semibold text-gray-700 mb-2">ปีการศึกษา</label>
+                <select id="yearFilter" class="block bg-white border border-gray-300 px-4 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">ทั้งหมด</option>
-                    <option value="เปิดรับสมัคร">เปิดรับสมัคร</option>
-                    <option value="ปิดรับสมัครแล้ว">ปิดรับสมัครแล้ว</option>
-                    <option value="ผู้ลงทะเบียนครบแล้ว">ผู้ลงทะเบียนครบแล้ว</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="semesterFilter" class="block text-sm font-semibold text-gray-700 mb-2">ภาคเรียน</label>
+                <select id="semesterFilter" class="block bg-white border border-gray-300 px-4 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">ทั้งหมด</option>
                 </select>
             </div>
         </div>
 
-        <!-- Summary -->
+        <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
                 <h2 class="text-lg font-bold text-gray-700 mb-2">กิจกรรมทั้งหมด</h2>
                 <p id="total-activities" class="text-2xl font-bold text-blue-600">0</p>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
                 <h2 class="text-lg font-bold text-gray-700 mb-2">กิจกรรมที่อนุมัติ</h2>
                 <p id="approved-activities" class="text-2xl font-bold text-green-600">0</p>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
                 <h2 class="text-lg font-bold text-gray-700 mb-2">จำนวนผู้ลงทะเบียน</h2>
                 <p id="registered-count" class="text-2xl font-bold text-yellow-600">0</p>
             </div>
@@ -121,37 +53,78 @@
 
         <!-- Charts Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Pie Chart -->
             <div class="bg-white rounded-lg shadow p-4">
-                <h2 class="text-lg font-bold text-gray-700 mb-4">ประเภทกิจกรรม</h2>
-                <div class="relative h-64">
+                <h2 class="text-lg font-bold text-gray-700 mb-4">สัดส่วนประเภทกิจกรรม (Pie)</h2>
+                <div class="relative h-80">
                     <canvas id="activityTypeChart"></canvas>
                 </div>
             </div>
+
+            <!-- Bar Chart -->
             <div class="bg-white rounded-lg shadow p-4">
-                <h2 class="text-lg font-bold text-gray-700 mb-4">สถานะการลงทะเบียน</h2>
-                <div class="relative h-64">
-                    <canvas id="registrationStatusChart"></canvas>
+                <h2 class="text-lg font-bold text-gray-700 mb-4">จำนวนกิจกรรมแต่ละด้าน (Bar)</h2>
+                <div class="relative h-80">
+                    <canvas id="activityTypeBarChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // 1. กำหนดชุดสีหลัก (ใช้ร่วมกันทั้ง Pie และ Bar)
+        const COLOR_PALETTE = [
+            '#4CAF50', // เขียว (ด้าน 1)
+            '#FF9800', // ส้ม (ด้าน 2)
+            '#2196F3', // ฟ้า (ด้าน 3)
+            '#F44336', // แดง (ด้าน 4)
+            '#9C27B0', // ม่วง (ด้าน 5)
+            '#607D8B'  // เทาอมฟ้า (ด้าน 6)
+        ];
+
+        // 2. กำหนดลำดับและชื่อย่อสำหรับการแสดงผลกราฟ (เรียง 1-6)
+        const ACTIVITY_ORDER_MAP = {
+            '1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์': '1. วิชาการ',
+            '2 ด้านกีฬาหรือการส่งเสริมสุขภาพ': '2. กีฬา/สุขภาพ',
+            '3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม': '3. บำเพ็ญประโยชน์',
+            '4 ด้านเสริมสร้างคุณธรรมและจริยธรรม': '4. คุณธรรม',
+            '5 ด้านส่งเสริมศิลปะและวัฒนธรรม': '5. ศิลปะ/วัฒนธรรม',
+            '6 ด้านกิจกรรมอื่นๆ': '6. กิจกรรมอื่นๆ'
+        };
+        // ดึง Key ออกมาเป็น Array เพื่อใช้ในการวนลูปตามลำดับ
+        const ACTIVITY_KEYS_ORDER = Object.keys(ACTIVITY_ORDER_MAP);
+
+        let activityTypeChart;
+        let activityTypeBarChart;
+
         async function fetchData() {
-            const response = await fetch("http://127.0.0.1:8000/ActivityParticipationManagementSystem/dashboard_api/");
-            const data = await response.json();
-            return data.activities;
+            try {
+                // URL API ของคุณ
+                const response = await fetch("http://127.0.0.1:8000/ActivityParticipationManagementSystem/dashboard_api/");
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data.activities;
+            } catch (error) {
+                console.error("Failed to fetch data:", error);
+                document.body.innerHTML = `<div class="flex justify-center items-center h-screen"><div class="text-center p-10 text-red-600 bg-white rounded shadow">ไม่สามารถโหลดข้อมูล Dashboard ได้<br>กรุณาตรวจสอบการเชื่อมต่อ API</div></div>`;
+                return [];
+            }
         }
 
         async function renderDashboard() {
             const activities = await fetchData();
+            if (activities.length === 0) return;
 
-            // Filters
+            // Elements
             const activityTypeFilter = document.getElementById('activityTypeFilter');
-            const statusFilter = document.getElementById('statusFilter');
+            const yearFilter = document.getElementById('yearFilter');
+            const semesterFilter = document.getElementById('semesterFilter');
 
-            // Populate Activity Type Filter
-            const activityTypes = [...new Set(activities.map(a => a.activity_type))];
+            // --- Populate Filters ---
+            // 1. Activity Type Filter
+            const activityTypes = [...new Set(activities.map(a => a.activity_type))].sort();
             activityTypes.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type;
@@ -159,27 +132,43 @@
                 activityTypeFilter.appendChild(option);
             });
 
-            // Filter Logic
+            // 2. Year Filter (เรียงมากไปน้อย)
+            const years = [...new Set(activities.map(a => a.academic_year))].sort((a, b) => b - a);
+            years.forEach(y => {
+                const option = document.createElement('option');
+                option.value = y;
+                option.textContent = `ปีการศึกษา ${y}`;
+                yearFilter.appendChild(option);
+            });
+
+            // 3. Semester Filter
+            const semesters = [...new Set(activities.map(a => a.semester))].sort();
+            semesters.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s;
+                option.textContent = `เทอม ${s}`;
+                semesterFilter.appendChild(option);
+            });
+
+            // --- Filter Logic ---
             function filterActivities() {
                 const selectedType = activityTypeFilter.value;
-                const selectedStatus = statusFilter.value;
+                const selectedYear = yearFilter.value;
+                const selectedSemester = semesterFilter.value;
 
                 return activities.filter(activity => {
                     const matchesType = !selectedType || activity.activity_type === selectedType;
-                    const matchesStatus = !selectedStatus || (
-                        selectedStatus === "เปิดรับสมัคร" && activity.is_registration_open ||
-                        selectedStatus === "ปิดรับสมัครแล้ว" && !activity.is_registration_open ||
-                        selectedStatus === "ผู้ลงทะเบียนครบแล้ว" && activity.registered_count >= activity.max_participants
-                    );
-
-                    return matchesType && matchesStatus;
+                    const matchesYear = !selectedYear || activity.academic_year == selectedYear;
+                    const matchesSemester = !selectedSemester || activity.semester == selectedSemester;
+                    return matchesType && matchesYear && matchesSemester;
                 });
             }
-
+            
+            // --- Update UI Functions ---
             function updateDashboard() {
                 const filteredActivities = filterActivities();
 
-                // Update Total Counts
+                // Update Cards
                 document.getElementById('total-activities').textContent = filteredActivities.length;
                 document.getElementById('approved-activities').textContent = filteredActivities.filter(a => a.is_approved).length;
                 document.getElementById('registered-count').textContent = filteredActivities.reduce((sum, a) => sum + a.registered_count, 0);
@@ -189,73 +178,126 @@
             }
 
             function updateCharts(filteredActivities) {
+                // นับจำนวนกิจกรรมแต่ละประเภท
                 const activityTypeCounts = {};
                 filteredActivities.forEach(activity => {
                     activityTypeCounts[activity.activity_type] = (activityTypeCounts[activity.activity_type] || 0) + 1;
                 });
+                
+                const orderedLabels = [];
+                const orderedData = [];
+                const backgroundColors = [];
+                const borderColors = [];
 
-                activityTypeChart.data.labels = Object.keys(activityTypeCounts);
-                activityTypeChart.data.datasets[0].data = Object.values(activityTypeCounts);
-                activityTypeChart.update();
-
-                const registrationStatusCounts = {
-                    "เปิดรับสมัคร": 0,
-                    "ปิดรับสมัครแล้ว": 0,
-                    "ผู้ลงทะเบียนครบแล้ว": 0
-                };
-
-                filteredActivities.forEach(activity => {
-                    if (!activity.is_registration_open) {
-                        registrationStatusCounts["ปิดรับสมัครแล้ว"]++;
-                    } else if (activity.registered_count >= activity.max_participants) {
-                        registrationStatusCounts["ผู้ลงทะเบียนครบแล้ว"]++;
-                    } else {
-                        registrationStatusCounts["เปิดรับสมัคร"]++;
+                // วนลูปตามลำดับที่กำหนดไว้ใน ACTIVITY_KEYS_ORDER (1 -> 6)
+                ACTIVITY_KEYS_ORDER.forEach((longKey, index) => {
+                    const count = activityTypeCounts[longKey] || 0;
+                    
+                    // แสดงข้อมูลเฉพาะที่มีค่ามากกว่า 0 หรือถ้าอยากให้แสดงครบทุกด้านแม้เป็น 0 ก็เอา if ออกได้
+                    if (count >= 0) { 
+                        orderedLabels.push(ACTIVITY_ORDER_MAP[longKey]); // ใช้ชื่อย่อ
+                        orderedData.push(count);
+                        
+                        // กำหนดสีตาม Index ของด้านกิจกรรมเพื่อให้สีเหมือนเดิมตลอด
+                        backgroundColors.push(COLOR_PALETTE[index % COLOR_PALETTE.length]);
+                        borderColors.push(COLOR_PALETTE[index % COLOR_PALETTE.length]);
                     }
                 });
 
-                registrationStatusChart.data.labels = Object.keys(registrationStatusCounts);
-                registrationStatusChart.data.datasets[0].data = Object.values(registrationStatusCounts);
-                registrationStatusChart.update();
+                // 1. Update Pie Chart
+                activityTypeChart.data.labels = orderedLabels;
+                activityTypeChart.data.datasets[0].data = orderedData;
+                activityTypeChart.data.datasets[0].backgroundColor = backgroundColors;
+                activityTypeChart.update();
+                
+                // 2. Update Bar Chart
+                activityTypeBarChart.data.labels = orderedLabels;
+                activityTypeBarChart.data.datasets[0].data = orderedData;
+                activityTypeBarChart.data.datasets[0].backgroundColor = backgroundColors;
+                activityTypeBarChart.data.datasets[0].borderColor = borderColors; 
+                activityTypeBarChart.update();
             }
 
-            // Charts
-            const activityTypeChart = new Chart(document.getElementById('activityTypeChart'), {
+            // --- Initialize Charts ---
+            
+            // Pie Chart Setup
+            const ctxPie = document.getElementById('activityTypeChart').getContext('2d');
+            activityTypeChart = new Chart(ctxPie, {
                 type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        data: [],
-                        backgroundColor: ['#4CAF50', '#FF9800', '#2196F3', '#F44336', '#9C27B0']
-                    }]
+                data: { 
+                    labels: [], 
+                    datasets: [{ 
+                        data: [], 
+                        backgroundColor: [],
+                        borderWidth: 1
+                    }] 
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom', // ย้าย Legend มาไว้ด้านล่าง
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
                 }
             });
-
-            const registrationStatusChart = new Chart(document.getElementById('registrationStatusChart'), {
+            
+            // Bar Chart Setup
+            const ctxBar = document.getElementById('activityTypeBarChart').getContext('2d');
+            activityTypeBarChart = new Chart(ctxBar, {
                 type: 'bar',
                 data: {
                     labels: [],
                     datasets: [{
+                        label: 'จำนวนกิจกรรม',
                         data: [],
-                        backgroundColor: ['#4CAF50', '#FF9800', '#F44336']
+                        backgroundColor: [],
+                        borderColor: [],
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true }
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1 // ให้แกน Y เพิ่มทีละ 1 (จำนวนนับ)
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                autoSkip: false, // บังคับให้แสดง Label แกน X ทุกอัน
+                                maxRotation: 45, // เอียงข้อความถ้ามันยาว
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // ซ่อน Legend ของกราฟแท่งเพราะสีบอกประเภทอยู่แล้ว
+                        }
                     }
                 }
             });
 
             // Event Listeners
             activityTypeFilter.addEventListener('change', updateDashboard);
-            statusFilter.addEventListener('change', updateDashboard);
+            yearFilter.addEventListener('change', updateDashboard);
+            semesterFilter.addEventListener('change', updateDashboard);
 
             // Initial Render
             updateDashboard();
         }
 
+        // Start App
         renderDashboard();
     </script>
 </body>
+</html>

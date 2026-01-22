@@ -19,8 +19,18 @@ class UserStudentAdminDisplay(admin.ModelAdmin):
     list_display = ['title', 
                     'faculty', 
                     'type_Scholarship_or_Student_loan_fund', 
-                    'number_of_credits_required', 
-                    'number_of_credits_available']
+                    'number_of_credits_required1', 
+                    'number_of_credits_available1',
+                    'number_of_credits_required2', 
+                    'number_of_credits_available2',
+                    'number_of_credits_required3', 
+                    'number_of_credits_available3',
+                    'number_of_credits_required4', 
+                    'number_of_credits_available4',
+                    'number_of_credits_required5', 
+                    'number_of_credits_available5',
+                    'number_of_credits_required6', 
+                    'number_of_credits_available6']
 
 admin.site.register(UserStudent, 
                     UserStudentAdminDisplay,

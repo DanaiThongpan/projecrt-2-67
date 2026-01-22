@@ -71,7 +71,7 @@
             {% endfor %}
         <!-- </div> -->
 
-            <p class="mx-8">เปิดให้ลงทะเบียนถึง
+            <p class="mx-8 text-green-500">เปิดให้ลงทะเบียนถึง
                 {{activity_student_get_id.due_date_registration.date}} 
                 <label for="" class="text-yellow-600">
                     ({% load tz %}{{ activity_student_get_id.due_date_registration|timezone:"Asia/Bangkok"|date:"H:i" }})
@@ -79,7 +79,7 @@
             </p>
 
             <div class="mx-8 mt-2">
-                <h2 class="my-4">(ลงทะเบียนแล้ว {{ registered_students|length }} คน)</h2>
+                <h2 class="my-4 text-blue-500">(ลงทะเบียนแล้ว {{ registered_students|length }} คน)</h2>
                 <button class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-700 transition"
                     onclick="openModal('modelConfirm')">
                     ตรวจสอบรายชื่อ

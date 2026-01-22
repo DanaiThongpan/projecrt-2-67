@@ -14,8 +14,8 @@ urlpatterns = [
     # URL สำหรับดาวน์โหลดไฟล์ CSV
     path('download_csv/<int:activity_id>/', download_activity_csv, name='download_activity_csv'),
 
-    path('create_activity/', create_activity, name='create_activity'),
-    path('create_activity_TimeEvent/<int:activity_id>/', create_activity_TimeEvent, name='create_activity_TimeEvent'),
+    path('create_activity_by_faculty_staff2/', create_activity, name='create_activity'),
+    path('create_activity_TimeEvent_by_faculty_staff2/<int:activity_id>/', create_activity_TimeEvent, name='create_activity_TimeEvent'),
     path('homePerson_responsible_for_the_project/activity2/<int:id>/', activity2, name="activity2"),
     path('homePerson_responsible_for_the_project/update_activity/<int:id>/', update_activity2, name="update_activity2"),
     path('homePerson_responsible_for_the_project/update_activity_TimeEvent/<int:activity_id>/', update_activity_TimeEvent, name="update_activity_TimeEvent"),
@@ -23,6 +23,8 @@ urlpatterns = [
 
     path('homePerson_responsible_for_the_project/delete_activity/<int:id>/', delete_activity, name='delete_activity'),
     path('homeActivity/delete_activity2/<int:id>/', delete_activity2, name='delete_activity2'),
+    path('homeActivity/update_activity2_faculty_staff/<int:id>/', update_activity2_faculty_staff, name='update_activity2_faculty_staff'),
+    path('homeActivity/update_activity_TimeEvent2/<int:id>/', update_activity_TimeEvent2, name='update_activity_TimeEvent2'),
 
     path('homePerson_responsible_for_the_project/delete_pdf/<int:pdf_id>/', delete_pdf, name='delete_pdf'),
 
@@ -31,6 +33,8 @@ urlpatterns = [
     path('homePerson_responsible_for_the_project/generate_pdf/<int:id>/', generate_pdf, name='generate_pdf'),
     path('homePerson_responsible_for_the_project/generate_registration_form/<int:id>/', generate_registration_form, name='generate_registration_form'),
     path('homePerson_responsible_for_the_project/<int:activity_id>/check_student_list/', check_student_list, name='check_student_list'),
+
+    path('homeFacultyStaff/<int:activity_id>/check_student_list_staff/', check_student_list_staff, name='check_student_list_staff'),
 
     path('homeFacultyStaff/', homeFacultyStaff, name='homeFacultyStaff'),
     path('homeActivity/', homeActivity, name='homeActivity'),
@@ -41,7 +45,9 @@ urlpatterns = [
     path('homeActivity/generate_registration_form2/<int:id>/', generate_registration_form2, name='generate_registration_form2'),
 
     path('dashboard/', dashboard, name='dashboard'),
+    path('dashboard_admin/', dashboard_admin, name='dashboard_admin'),
     path('dashboard2/', dashboard2, name='dashboard2'),
+    path('dashboard3/', dashboard3, name='dashboard3'),
     path('activity/<int:activity_id>/upload_pdf/', upload_pdf, name='upload_pdf'),
     path('activity/<int:activity_id>/upload_pdf2/', upload_pdf2, name='upload_pdf2'),
     

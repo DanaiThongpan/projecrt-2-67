@@ -61,25 +61,35 @@ class db_create_activity(models.Model):
     registered_count = models.IntegerField(default=0)
     is_registration_open = models.BooleanField(default=True)
     is_approved = models.BooleanField(default=False)  # เพิ่มฟิลด์นี้เพื่อเก็บค่าสถานะอนุมัติ
-    current_year = now().year + 543
+    # current_year = now().year + 543
 
-    SEMESTER_CHOICES = [
-        (f'1/{current_year}', f'1/{current_year}'),
-        (f'2/{current_year}', f'2/{current_year}'),
-    ]
+    # SEMESTER_CHOICES = [
+    #     (f'1/{current_year}', f'1/{current_year}'),
+    #     (f'2/{current_year}', f'2/{current_year}'),
+    # ]
 
     announcement_date = models.DateTimeField(auto_now_add=True)  # วันที่ประกาศ (ตั้งค่าอัตโนมัติ)
-    semester = models.CharField(max_length=20, choices=SEMESTER_CHOICES, blank=True)  # ภาคการศึกษา
+    # semester = models.CharField(max_length=20, choices=SEMESTER_CHOICES, blank=True)  # ภาคการศึกษา
 
     number_of_days = models.IntegerField(default=1)  # จำนวนวันที่จัดกิจกรรม (เริ่มต้นที่ 1)
+
+
+    # แยกเทอมและปีการศึกษา
+    SEMESTER_CHOICES = [
+        ('1', '1'),
+        ('2', '2'),
+    ]
+    semester = models.CharField(max_length=1, choices=SEMESTER_CHOICES, blank=True)
+
+    academic_year = models.IntegerField(default=now().year + 543)  # ปีการศึกษาแบบ พ.ศ.
 
     objects = ActivityManager()
 
     def save(self, *args, **kwargs):
         current_year = now().year + 543
         SEMESTER_CHOICES = [
-            (f'1/{current_year}', f'1/{current_year}'),
-            (f'2/{current_year}', f'2/{current_year}'),
+            (f'1', f'1'),
+            (f'2', f'2'),
         ]
         self._meta.get_field('semester').choices = SEMESTER_CHOICES
 

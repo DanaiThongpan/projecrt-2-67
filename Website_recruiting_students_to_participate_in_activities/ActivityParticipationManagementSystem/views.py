@@ -29,19 +29,19 @@ def homeStudent(request):
     user_student = UserStudent.objects.get(user=request.user)
     activity_student = db_create_activity.objects.all()
 
-    if 'show_popup' not in request.session:
-        credits_needed = user_student.number_of_credits_required - user_student.number_of_credits_available
+    # if 'show_popup' not in request.session:
+    #     credits_needed = user_student.number_of_credits_required3 - user_student.number_of_credits_available3
 
-        if user_student.number_of_credits_required - user_student.number_of_credits_available <= 0:
-            messages.info(
-                request,
-                f"ตอนนี้คุณมีหน่วยกิตครบแล้ว")
-        else:
-            messages.info(
-                request,
-                f"ตอนนี้คุณมีหน่วยกิต {user_student.number_of_credits_available} หน่วย ต้องการอีก {credits_needed} หน่วย")
+    #     if user_student.number_of_credits_required3 - user_student.number_of_credits_available3 <= 0:
+    #         messages.info(
+    #             request,
+    #             f"ตอนนี้คุณมีหน่วยกิตครบแล้ว")
+    #     else:
+    #         messages.info(
+    #             request,
+    #             f"ตอนนี้คุณมีหน่วยกิต {user_student.number_of_credits_available3} หน่วย ต้องการอีก {credits_needed} หน่วย")
 
-        request.session['show_popup'] = True
+    #     request.session['show_popup'] = True
     
     return render(request, 'Student/home.html', {
         'user_student' : user_student,
@@ -111,6 +111,7 @@ def activity_student_history(request):
 
     return render(request, 'Student/activity_student_history.html', {
         'activity_student_history' : activity_student_history,
+        'act_choices': act_choices[:],
     })
 
 #################################################################################################################################################
@@ -129,31 +130,29 @@ def homePerson_responsible_for_the_project(request):
     activity_type = request.GET.get('activity_type', 'all')
 
     # ตรวจสอบว่าผู้ใช้เลือกประเภทกิจกรรมอะไร และกรองข้อมูล
-    if activity_type == 'all':
-        # กรองกิจกรรมที่สร้างโดย user_person_responsible
-        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible)
-    elif activity_type == 'academic':
-        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์")
-    elif activity_type == 'sport':
-        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="2 ด้านกีฬาหรือการส่งเสริมสุขภาพ")
-    elif activity_type == 'environment':
-        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม")
-    elif activity_type == 'moral':
-        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="4 ด้านเสริมสร้างคุณธรรมและจริยธรรม")
-    elif activity_type == 'art_culture':
-        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="5 ด้านส่งเสริมศิลปะและวัฒนธรรม")
-    elif activity_type == 'other':
-        activity_person_responsible = db_create_activity.objects.filter(user_person_responsible=person_responsible, activity_type="6 ด้านกิจกรรมอื่นๆ")
 
+
+    # กรองข้อมูลกิจกรรมตามเงื่อนไข
+    if activity_type == 'all':
+        activities = db_create_activity.objects.filter(
+            # Q(user_faculty_staff=user_faculty_staff) |  # กิจกรรมที่ประกาศโดยเจ้าหน้าที่คณะ
+            Q(user_person_responsible__faculty=person_responsible.faculty)  # กิจกรรมที่ผู้รับผิดชอบอยู่ในคณะเดียวกัน
+        )
+    else:
+        activities = db_create_activity.objects.filter(
+            # Q(user_faculty_staff=user_faculty_staff) | 
+            Q(user_person_responsible__faculty=person_responsible.faculty),
+            activity_type=activity_type  # กรองตามประเภทกิจกรรมที่เลือก
+        )
     # การแจ้งเตือนกิจกรรมที่ได้รับการอนุมัติ
-    for activity in activity_person_responsible:
+    for activity in activities:
         if activity.is_approved:
             messages.info(request, f"กิจกรรม '{activity.activity_name}' ได้รับการอนุมัติหน่วยกิตแล้ว")
 
     # ส่งข้อมูลไปยังเทมเพลต
     return render(request, 'Person_responsible_for_the_project/home.html', {
         'db2': person_responsible,
-        'activity_person_responsible': activity_person_responsible,
+        'activity_person_responsible': activities,
         'act_choices': act_choices[:],
 
     })
@@ -304,6 +303,7 @@ def activity2(request, id):
 
 @login_required
 @user_passes_test(is_person_responsible_for_the_project, login_url='login')
+
 def check_student_list(request, activity_id):
     activity = get_object_or_404(db_create_activity, id=activity_id)
     
@@ -658,7 +658,7 @@ def generate_registration_form(request, id):
     pdf.drawString(2 * cm, 17.5 * cm, "ผู้รับผิดชอบโครงการ ___________________________________")
     pdf.drawString(5 * cm, 17.5 * cm, responsible_person_t)
     pdf.drawString(6 * cm, 17.5 * cm, responsible_person_f)
-    pdf.drawString(7 * cm, 17.5 * cm, responsible_person_l)
+    pdf.drawString(8 * cm, 17.5 * cm, responsible_person_l)
     # pdf.line(5.8 * cm, 17.4 * cm, 10.5 * cm, 17.4 * cm)
 
     pdf.drawString(11 * cm, 17.5 * cm, "ที่ปรึกษาโครงการ ______________________________________")
@@ -748,8 +748,8 @@ def generate_registration_form(request, id):
 
     pdf.drawString(12.8 * cm, 6 * cm, "( ___________________ )")
     pdf.drawString(13 * cm, 6 * cm, responsible_person_t)
-    pdf.drawString(14 * cm, 6 * cm, responsible_person_f)
-    pdf.drawString(15 * cm, 6 * cm, responsible_person_l)
+    pdf.drawString(13.3 * cm, 6 * cm, responsible_person_f)
+    pdf.drawString(15.3 * cm, 6 * cm, responsible_person_l)
 
     pdf.drawString(4.2 * cm, 5.5 * cm, "วันที่ ___________________")
     pdf.drawString(12.2 * cm, 5.5 * cm, "วันที่ ____________________")
@@ -856,7 +856,8 @@ def homeActivity(request):
     # ส่งข้อมูลไปยังเทมเพลต
     return render(request, 'FacultyStaff/home_activity.html', {
         'i': faculty_staff,
-        'db': activities,
+        'activity_person_responsible': activities,
+        'act_choices': act_choices[:],
     })
 
 @login_required
@@ -906,6 +907,73 @@ from django.utils import timezone
 ################################################################################################
 ################################################################################################
 ################################################################################################
+# @login_required
+# @user_passes_test(is_person_responsible_for_the_project, login_url='login')
+# def update_activity2(request, id):
+#     activity_get_id = db_create_activity.objects.get(pk=id)
+#     form = forms_create_activity(instance=activity_get_id)
+    
+#     if request.method == 'POST':
+#         form = forms_create_activity(request.POST, request.FILES, instance=activity_get_id)
+        
+#         if form.is_valid():
+#             activity = form.save(commit=False)
+
+#             # ตรวจสอบวันปิดรับสมัครกับวันปัจจุบัน
+#             if activity.due_date_registration >= timezone.now():
+#                 activity.is_registration_open = True
+#             else:
+#                 activity.is_registration_open = False
+
+#             activity.save()  # บันทึกข้อมูลกิจกรรมหลังจากตรวจสอบ
+            
+#             return redirect('update_activity_TimeEvent', activity_id=activity.id)
+    
+#     # ถ้าไม่ใช่ POST method ให้แสดงฟอร์มแก้ไขกิจกรรม
+#     return render(request, 'Person_responsible_for_the_project/update_activity.html', {
+#         'form': form,
+#         'activity': activity_get_id,
+#     })
+
+# @login_required
+# @user_passes_test(is_person_responsible_for_the_project, login_url='login')
+# def update_activity_TimeEvent(request, activity_id):
+#     activity_get_id = db_create_activity.objects.get(id=activity_id)
+#     time_events = TimeEvent.objects.filter(activity_id=activity_id)
+
+#     if request.method == 'POST':
+#         form = TimeEvent_activity(request.POST, request.FILES, instance=activity_get_id)
+        
+#         if form.is_valid():
+#             try:
+#                 # บันทึกข้อมูลกิจกรรม
+#                 activity = form.save(commit=False)
+#                 activity.save()
+
+#                 # อัปเดตข้อมูล TimeEvent
+#                 for time_event in time_events:
+#                     time_event.place = request.POST.get(f'place_{time_event.id}')
+#                     time_event.start_date_activity = request.POST.get(f'start_date_activity_{time_event.id}')
+#                     time_event.due_date_activity = request.POST.get(f'due_date_activity_{time_event.id}')
+#                     time_event.save()
+
+#                 # Redirect ไปยังหน้า homePerson_responsible_for_the_project
+#                 return redirect('homePerson_responsible_for_the_project')
+#             except Exception as e:
+#                 # แสดงข้อผิดพลาดใน console
+#                 print(f"เกิดข้อผิดพลาด: {e}")
+#         else:
+#             # แสดงข้อผิดพลาดของฟอร์มใน console
+#             print("ฟอร์มไม่ถูกต้อง:", form.errors)
+#     else:
+#         form = TimeEvent_activity(instance=activity_get_id)
+
+#     return render(request, 'Person_responsible_for_the_project/update_activity_TimeEvent.html', {
+#         'form': form,
+#         'activity': activity_get_id,
+#         'time_events': time_events,
+#     })
+
 @login_required
 @user_passes_test(is_faculty_staff, login_url='login')
 def update_activity2_faculty_staff(request, id):
@@ -926,12 +994,51 @@ def update_activity2_faculty_staff(request, id):
 
             activity.save()  # บันทึกข้อมูลกิจกรรมหลังจากตรวจสอบ
             
-            return redirect('homeFacultyStaff')
-    
+            # return redirect('homeFacultyStaff')
+            return redirect('update_activity_TimeEvent2', activity_id=activity.id)
     # ถ้าไม่ใช่ POST method ให้แสดงฟอร์มแก้ไขกิจกรรม
     return render(request, 'FacultyStaff/update_activity.html', {
         'form': form,
         'i': activity_get_id,
+    })
+
+@login_required
+@user_passes_test(is_faculty_staff, login_url='login')
+def update_activity_TimeEvent2(request, activity_id):
+    activity_get_id = db_create_activity.objects.get(id=activity_id)
+    time_events = TimeEvent.objects.filter(activity_id=activity_id)
+
+    if request.method == 'POST':
+        form = TimeEvent_activity(request.POST, request.FILES, instance=activity_get_id)
+        
+        if form.is_valid():
+            try:
+                # บันทึกข้อมูลกิจกรรม
+                activity = form.save(commit=False)
+                activity.save()
+
+                # อัปเดตข้อมูล TimeEvent
+                for time_event in time_events:
+                    time_event.place = request.POST.get(f'place_{time_event.id}')
+                    time_event.start_date_activity = request.POST.get(f'start_date_activity_{time_event.id}')
+                    time_event.due_date_activity = request.POST.get(f'due_date_activity_{time_event.id}')
+                    time_event.save()
+
+                # Redirect ไปยังหน้า homePerson_responsible_for_the_project
+                return redirect('homeFacultyStaff')
+            except Exception as e:
+                # แสดงข้อผิดพลาดใน console
+                print(f"เกิดข้อผิดพลาด: {e}")
+        else:
+            # แสดงข้อผิดพลาดของฟอร์มใน console
+            print("ฟอร์มไม่ถูกต้อง:", form.errors)
+    else:
+        form = TimeEvent_activity(instance=activity_get_id)
+
+    return render(request, 'FacultyStaff/update_activity_TimeEvent.html', {
+        'form': form,
+        'activity': activity_get_id,
+        'time_events': time_events,
     })
 
 @login_required
@@ -995,6 +1102,7 @@ def delete_pdf2(request, pdf_id):
 def generate_pdf2(request, id):
     # ดึงข้อมูลจากฐานข้อมูลโดยใช้ activity_id
     db_user = db_activity_adduser.objects.filter(activity_id=id)
+    time_events = TimeEvent.objects.filter(activity_id=id)  # ดึงข้อมูล TimeEvent
 
     # สร้าง buffer เพื่อเก็บข้อมูลของไฟล์ PDF
     buffer = BytesIO()
@@ -1002,7 +1110,10 @@ def generate_pdf2(request, id):
     # สร้าง PDF document
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
     
-    pdf.title = ('แบบบันทึกการเข้าร่วมกิจกรรม ' + db_user.first().activity.activity_name)
+    if db_user.exists():
+        pdf.title = ('แบบบันทึกการเข้าร่วมกิจกรรม ' + db_user.first().activity.activity_name)
+    else:
+        pdf.title = 'แบบบันทึกการเข้าร่วมกิจกรรม'
 
     story = []
 
@@ -1026,45 +1137,50 @@ def generate_pdf2(request, id):
     # หัวข้อรายงาน
     if db_user.exists():
         activity_name = db_user.first().activity.activity_name
-        place = db_user.first().activity.place
 
-        # เพิ่มหัวข้อในตาราง
-        story.append(Paragraph(f"รายชื่อผู้เข้าร่วมกิจกรรม {activity_name}", styles['CenteredStyle']))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph("วันที่ 16 สิงหาคม 2566", styles['CenteredStyle']))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph("เวลา 11.00 น. - 16.00 น.", styles['CenteredStyle']))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph(f"ณ {db_user.first().activity.place}", styles['CenteredStyle']))
-        story.append(Spacer(1, 24))
-        story.append(Spacer(1, 24))
-        
-        # สร้างหัวตาราง
-        data = [['ลำดับ', 'ชื่อ-สกุล', 'รหัสนักศึกษา', 'คณะ', 'ลงชื่อ']]
+        # วนลูปแสดงข้อมูล TimeEvent
+        for time_event in time_events:
+            # แปลงเวลาให้เป็นเวลาในไทย
+            start_date_activity_thai = timezone.localtime(time_event.start_date_activity)
+            due_date_activity_thai = timezone.localtime(time_event.due_date_activity)
+            # หัวข้อสำหรับแต่ละ TimeEvent
+            story.append(Paragraph(f"รายชื่อผู้เข้าร่วมกิจกรรม {activity_name}", styles['CenteredStyle']))
+            story.append(Spacer(1, 12))
+            story.append(Paragraph(f"สถานที่: {time_event.place}", styles['CenteredStyle']))
+            story.append(Paragraph(f"วันที่เริ่มกิจกรรม: {start_date_activity_thai.strftime('%d/%m/%Y')}", styles['CenteredStyle']))
+            story.append(Paragraph(f"เวลา: {start_date_activity_thai.strftime('%H:%M')} - {due_date_activity_thai.strftime('%H:%M')}", styles['CenteredStyle']))
+            story.append(Spacer(1, 12))
+            # formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+            # สร้างหัวตาราง
+            data = [['ลำดับ', 'ชื่อ-สกุล', 'รหัสนักศึกษา', 'คณะ', 'ลงชื่อ']]
 
-        # เพิ่มข้อมูลในตาราง
-        for index, user in enumerate(db_user, start=1):
-            full_name = f"{user.student.title} {user.student.user.first_name} {user.student.user.last_name}"
-            student_id = user.student.user.username
-            faculty = user.student.faculty
-            data.append([str(index), full_name, student_id, faculty, ""])
+            # เพิ่มข้อมูลในตาราง
+            for index, user in enumerate(db_user, start=1):
+                full_name = f"{user.student.title} {user.student.user.first_name} {user.student.user.last_name}"
+                student_id = user.student.user.username
+                faculty = user.student.faculty
+                data.append([str(index), full_name, student_id, faculty, ""])
 
-        # สร้างตาราง
-        table = Table(data, colWidths=[50, 150, 100, 100, 100])
+            # สร้างตาราง
+            table = Table(data, colWidths=[50, 150, 100, 100, 100])
 
-        # กำหนดสไตล์ให้กับตาราง
-        table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, -1), 'THSarabunNew'),  # ใช้ฟอนต์ไทยสำหรับทั้งตาราง
-            ('FONTSIZE', (0, 0), (-1, 0), 16),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('BACKGROUND', (0, 0), (-1, 0), colors.white),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ]))
+            # กำหนดสไตล์ให้กับตาราง
+            table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), 'THSarabunNew'),  # ใช้ฟอนต์ไทยสำหรับทั้งตาราง
+                ('FONTSIZE', (0, 0), (-1, 0), 16),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.white),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ]))
 
-        # เพิ่มตารางลงในเนื้อหา
-        story.append(table)
+            # เพิ่มตารางลงในเนื้อหา
+            story.append(table)
+            story.append(Spacer(1, 24))  # เพิ่มช่องว่างระหว่างตาราง
+
+            # เพิ่มหน้าใหม่สำหรับแต่ละ TimeEvent
+            story.append(PageBreak())
 
     else:
         story.append(Paragraph("ไม่พบข้อมูลผู้เข้าร่วมกิจกรรม", styles['CenteredStyle']))
@@ -1078,6 +1194,7 @@ def generate_pdf2(request, id):
 
     # เข้ารหัสเป็น base64 เพื่อให้สามารถฝังลงใน HTML ได้
     pdf_base64 = base64.b64encode(pdf_data).decode('utf-8')
+
 
     # ส่งข้อมูล PDF และ activity_id ไปยัง template HTML
     return render(request, 'FacultyStaff/generate_pdf.html', {'pdf_base64': pdf_base64, 'activity_id': id})
@@ -1096,7 +1213,6 @@ from reportlab.pdfbase import pdfmetrics
 @login_required
 @user_passes_test(is_faculty_staff, login_url='login')
 def generate_registration_form2(request, id):
-
     db_user = db_activity_adduser.objects.filter(activity_id=id)
 
     buffer = BytesIO()
@@ -1192,7 +1308,7 @@ def generate_registration_form2(request, id):
 
     # จำนวนชั่วโมงที่เข้าร่วมกิจกรรม
     pdf.drawString(2 * cm, 19.5 * cm, "จำนวนชั่วโมงที่เข้าร่วมกิจกรรม ________________")  # ปรับตำแหน่งขึ้นเล็กน้อย
-    pdf.drawString(7.5 * cm, 19.5 * cm, str(db_user.first().activity.credit))
+    pdf.drawString(7.5 * cm, 19.5 * cm, str(int(db_user.first().activity.credit)*3))
     # pdf.line(6.5 * cm, 19.4 * cm, 7.5 * cm, 19.4 * cm)
     pdf.drawString(9 * cm, 19.5 * cm, "ชั่วโมง")
 
@@ -1216,43 +1332,43 @@ def generate_registration_form2(request, id):
         return f"{day} {month} {year}"
 
     # ดึงวันที่จากฐานข้อมูล
-    start_date = db_user.first().activity.start_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
+    # start_date = db_user.first().activity.start_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
     # แปลงวันที่เป็นภาษาไทย
-    formatted_date = format_date_thai(start_date)
-    formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+    # formatted_date = format_date_thai(start_date)
+    # formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
 
     # ใช้ใน PDF วันที่เริ่มและสิ้นสุดกิจกรรม
     pdf.drawString(2 * cm, 18.5 * cm, "วันที่เริ่ม ________________")
-    pdf.drawString(3.5 * cm, 18.5 * cm, formatted_date)
+    # pdf.drawString(3.5 * cm, 18.5 * cm, formatted_date)
     pdf.drawString(6 * cm, 18.5 * cm, "เวลา ________________________")
-    pdf.drawString(8.5 * cm, 18.5 * cm, formatted_date_time)
+    # pdf.drawString(8.5 * cm, 18.5 * cm, formatted_date_time)
 
     # ดึงวันที่จากฐานข้อมูล  
-    start_date = db_user.first().activity.due_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
-    formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
+    # start_date = db_user.first().activity.due_date_activity  # วันที่เริ่มกิจกรรม (datetime object)
+    # formatted_date_time = format_datetime(start_date, "HH:mm", locale="th")
     
     # แปลงวันที่เป็นภาษาไทย
-    formatted_date = format_date_thai(start_date)
+    # formatted_date = format_date_thai(start_date)
     pdf.drawString(11 * cm, 18.5 * cm, "วันที่สิ้นสุด __________________")
-    pdf.drawString(13 * cm, 18.5 * cm, formatted_date)
+    # pdf.drawString(13 * cm, 18.5 * cm, formatted_date)
     # pdf.line(12.8 * cm, 18.4 * cm, 15.5 * cm, 18.4 * cm)
     pdf.drawString(15.7 * cm, 18.5 * cm, "เวลา ____________________")
-    pdf.drawString(17.5 * cm, 18.5 * cm, formatted_date_time)
+    # pdf.drawString(17.5 * cm, 18.5 * cm, formatted_date_time)
     # pdf.drawString(17.5 * cm, 18.5 * cm, "13.00")
     # pdf.line(17.4 * cm, 18.4 * cm, 19 * cm, 18.4 * cm)
 
     # ผู้รับผิดชอบโครงการ และที่ปรึกษาโครงการ
     # Query ข้อมูลผู้รับผิดชอบโครงการ
-    responsible_person_t = db_user.first().activity.user_faculty_staff.title
-    responsible_person_f = db_user.first().activity.user_faculty_staff.user.first_name
-    responsible_person_l = db_user.first().activity.user_faculty_staff.user.last_name
+    # responsible_person_t = db_user.first().activity.user_person_responsible.title
+    # responsible_person_f = db_user.first().activity.user_person_responsible.user.first_name
+    # responsible_person_l = db_user.first().activity.user_person_responsible.user.last_name
 
     # สร้าง PDF และแสดงข้อมูล
     pdf.drawString(2 * cm, 17.5 * cm, "ผู้รับผิดชอบโครงการ ___________________________________")
-    pdf.drawString(5 * cm, 17.5 * cm, responsible_person_t)
-    pdf.drawString(6 * cm, 17.5 * cm, responsible_person_f)
-    pdf.drawString(7 * cm, 17.5 * cm, responsible_person_l)
-    # pdf.line(5.8 * cm, 17.4 * cm, 10.5 * cm, 17.4 * cm)
+    # pdf.drawString(5 * cm, 17.5 * cm, responsible_person_t)
+    # pdf.drawString(6 * cm, 17.5 * cm, responsible_person_f)
+    # pdf.drawString(7 * cm, 17.5 * cm, responsible_person_l)
+    # # pdf.line(5.8 * cm, 17.4 * cm, 10.5 * cm, 17.4 * cm)
 
     pdf.drawString(11 * cm, 17.5 * cm, "ที่ปรึกษาโครงการ ______________________________________")
     # pdf.line(14.5 * cm, 17.4 * cm, 19 * cm, 17.4 * cm)
@@ -1334,19 +1450,19 @@ def generate_registration_form2(request, id):
     pdf.drawString(4 * cm, 6.5 * cm, "(ลงชื่อ) _________________")
     pdf.drawString(8 * cm, 6.5 * cm, "ผู้ยื่นคำร้อง")
     pdf.drawString(12 * cm, 6.5 * cm, "(ลงชื่อ) ___________________ ผู้รับรองกิจกรรม")
-    pdf.drawString(13 * cm, 6.5 * cm, responsible_person_t)
-    pdf.drawString(14 * cm, 6.5 * cm, responsible_person_f)
-    pdf.drawString(15 * cm, 6.5 * cm, responsible_person_l)
+    # pdf.drawString(13 * cm, 6.5 * cm, responsible_person_t)
+    # pdf.drawString(14 * cm, 6.5 * cm, responsible_person_f)
+    # pdf.drawString(15 * cm, 6.5 * cm, responsible_person_l)
     pdf.drawString(4.8 * cm, 6 * cm, "( __________________ )")
 
     pdf.drawString(12.8 * cm, 6 * cm, "( ___________________ )")
-    pdf.drawString(13 * cm, 6 * cm, responsible_person_t)
-    pdf.drawString(14 * cm, 6 * cm, responsible_person_f)
-    pdf.drawString(15 * cm, 6 * cm, responsible_person_l)
+    # pdf.drawString(13 * cm, 6 * cm, responsible_person_t)
+    # pdf.drawString(14 * cm, 6 * cm, responsible_person_f)
+    # pdf.drawString(15 * cm, 6 * cm, responsible_person_l)
 
     pdf.drawString(4.2 * cm, 5.5 * cm, "วันที่ ___________________")
     pdf.drawString(12.2 * cm, 5.5 * cm, "วันที่ ____________________")
-    pdf.drawString(13.5 * cm, 5.5 * cm, formatted_date)
+    # pdf.drawString(13.5 * cm, 5.5 * cm, formatted_date)
     pdf.rect(2 * cm, 1 * cm, 6 * cm, 4 * cm)
     pdf.rect(8 * cm, 1 * cm, 6 * cm, 4 * cm)
     pdf.rect(14 * cm, 1 * cm, 6 * cm, 4 * cm)
@@ -1375,7 +1491,7 @@ def generate_registration_form2(request, id):
     
     # เข้ารหัสเป็น base64 เพื่อให้สามารถฝังลงใน HTML ได้
     pdf_base64 = base64.b64encode(pdf_data).decode('utf-8')
-
+    
     # ส่งข้อมูล PDF และ activity_id ไปยัง template HTML
     return render(request, 'FacultyStaff/generate_registration_form.html', {'pdf_base64': pdf_base64, 'activity_id': id})
 
@@ -1383,70 +1499,109 @@ def generate_registration_form2(request, id):
 ################################################################################################
 ################################################################################################
 from django.db.models import Q
+# 1. กำหนด Dictionary สำหรับการแมปประเภทกิจกรรมไปสู่ชื่อฟิลด์หน่วยกิต
+# ใช้ค่าจาก act_choices โดยตรงเพื่อความแม่นยำ
+CREDIT_FIELD_MAPPING = {
+    '1 ด้านวิชาการที่ส่งเสริมคุณลักษณะบัณฑิตที่พึงประสงค์': 'number_of_credits_available1',
+    '2 ด้านกีฬาหรือการส่งเสริมสุขภาพ': 'number_of_credits_available2',
+    '3 ด้านบำเพ็ญประโยชน์หรือรักษาสิ่งแวดล้อม': 'number_of_credits_available3',
+    '4 ด้านเสริมสร้างคุณธรรมและจริยธรรม': 'number_of_credits_available4',
+    '5 ด้านส่งเสริมศิลปะและวัฒนธรรม': 'number_of_credits_available5',
+    '6 ด้านกิจกรรมอื่นๆ': 'number_of_credits_available6',
+}
+
+
 @login_required
 @user_passes_test(is_faculty_staff, login_url='login')
 def homeFacultyStaff(request):
-    # activity_get_id = request.GET.get('student', 'all')
-    # registered_students = db_activity_adduser.objects.filter(activity=activity_get_id).select_related('student')
-
-       # ดึงข้อมูลเจ้าหน้าที่คณะที่ล็อกอิน
     user_faculty_staff = get_object_or_404(UserFacultyStaff, user=request.user)
-    # registered_students = db_activity_adduser.objects.filter(activity=activity_get_id).select_related('student')
-
-    # รับค่าประเภทกิจกรรมจาก URL parameter
     activity_type = request.GET.get('activity_type', 'all')
-    # registered_students = db_activity_adduser.objects.filter(activity=activity_type).select_related('student')
 
-    # กรองข้อมูลกิจกรรมตามเงื่อนไข
+    # 2. ฟังก์ชันช่วยในการเพิ่มหรือลบหน่วยกิตตามประเภทกิจกรรม
+    def update_student_credit(activity, students_in_activity_queryset, is_approval):
+        """
+        อัปเดต/ยกเลิกหน่วยกิตให้กับนักศึกษาตามประเภทกิจกรรมที่แมปไว้
+        """
+        field_name = CREDIT_FIELD_MAPPING.get(activity.activity_type)
+        credit_amount = activity.credit
+        
+        if not field_name:
+            messages.error(
+                request, 
+                f"ไม่พบการแมปประเภทกิจกรรม '{activity.activity_type}' กับฟิลด์หน่วยกิตที่ถูกต้อง"
+            )
+            return False
+
+        operator = 1 if is_approval else -1 # 1 สำหรับเพิ่ม, -1 สำหรับลด
+
+        for student_in_activity in students_in_activity_queryset:
+            # สมมติว่า student_in_activity.student คือ UserStudent instance
+            student_profile = student_in_activity.student
+            
+            # ดึงค่าหน่วยกิตปัจจุบัน และคำนวณค่าใหม่
+            current_credit = getattr(student_profile, field_name)
+            new_credit = current_credit + (operator * credit_amount)
+            
+            # ป้องกันหน่วยกิตติดลบเมื่อยกเลิกอนุมัติ
+            if not is_approval and new_credit < 0:
+                new_credit = 0 
+            
+            # ตั้งค่าหน่วยกิตใหม่และบันทึก
+            setattr(student_profile, field_name, new_credit)
+            student_profile.save()
+            
+        return True
+    
+    # กรองข้อมูลกิจกรรมตามเงื่อนไข (เหมือนเดิม)
     if activity_type == 'all':
         activities = db_create_activity.objects.filter(
-            Q(user_faculty_staff=user_faculty_staff) |  # กิจกรรมที่ประกาศโดยเจ้าหน้าที่คณะ
-            Q(user_person_responsible__faculty=user_faculty_staff.faculty)  # กิจกรรมที่ผู้รับผิดชอบอยู่ในคณะเดียวกัน
+            Q(user_faculty_staff=user_faculty_staff) | 
+            Q(user_person_responsible__faculty=user_faculty_staff.faculty)
         )
     else:
         activities = db_create_activity.objects.filter(
             Q(user_faculty_staff=user_faculty_staff) | 
             Q(user_person_responsible__faculty=user_faculty_staff.faculty),
-            activity_type=activity_type  # กรองตามประเภทกิจกรรมที่เลือก
+            activity_type=activity_type
         )
             
-    # ตรวจสอบว่ามีการกดปุ่มอนุมัติหรือไม่
+    # 3. จัดการ Logic เมื่อมีการกดปุ่มอนุมัติ/ยกเลิกอนุมัติ
     if request.method == 'POST':
         if 'approve_activity' in request.POST:
             activity_id = request.POST.get('approve_activity')
             selected_activity = get_object_or_404(db_create_activity, id=activity_id)
             
-            # ตรวจสอบว่ายังไม่ได้รับการอนุมัติ
             if not selected_activity.is_approved:
-                # เลือกเฉพาะนักศึกษาที่มี is_approved = True
-                students_in_activity = db_activity_adduser.objects.filter(activity=selected_activity, is_approved=True).select_related('student')
+                # เลือกนักศึกษาที่ผ่านกิจกรรมแล้ว
+                students_in_activity = db_activity_adduser.objects.filter(
+                    activity=selected_activity, 
+                    is_approved=True
+                ).select_related('student')
                 
-                for student_in_activity in students_in_activity:
-                    student = student_in_activity.student
-                    student.number_of_credits_available += selected_activity.credit
-                    student.save()
-
-                selected_activity.is_approved = True  # อัปเดตสถานะการอนุมัติ
-                selected_activity.save()
-
+                # อัปเดตหน่วยกิต (เพิ่ม)
+                if update_student_credit(selected_activity, students_in_activity, is_approval=True):
+                    selected_activity.is_approved = True
+                    selected_activity.save()
+                    messages.success(request, f"กิจกรรม '{selected_activity.activity_name}' ได้รับการอนุมัติและเพิ่มหน่วยกิตให้ด้านที่เกี่ยวข้องแล้ว ✅")
+                
         elif 'cancel_approval' in request.POST:
             activity_id = request.POST.get('cancel_approval')
             selected_activity = get_object_or_404(db_create_activity, id=activity_id)
             
-            # ตรวจสอบว่ากิจกรรมได้รับการอนุมัติแล้ว และทำการยกเลิกอนุมัติ
             if selected_activity.is_approved:
-                # เลือกเฉพาะนักศึกษาที่มี is_approved = True
-                students_in_activity = db_activity_adduser.objects.filter(activity=selected_activity, is_approved=True).select_related('student')
-                
-                for student_in_activity in students_in_activity:
-                    student = student_in_activity.student
-                    student.number_of_credits_available -= selected_activity.credit  # ลบเครดิต
-                    student.save()
+                # เลือกนักศึกษาที่ผ่านกิจกรรมแล้ว
+                students_in_activity = db_activity_adduser.objects.filter(
+                    activity=selected_activity, 
+                    is_approved=True
+                ).select_related('student')
 
-                selected_activity.is_approved = False  # ยกเลิกสถานะการอนุมัติ
-                selected_activity.save()
+                # อัปเดตหน่วยกิต (ลบ)
+                if update_student_credit(selected_activity, students_in_activity, is_approval=False):
+                    selected_activity.is_approved = False
+                    selected_activity.save()
+                    messages.success(request, f"กิจกรรม '{selected_activity.activity_name}' ได้รับการยกเลิกอนุมัติและลบหน่วยกิตออกจากด้านที่เกี่ยวข้องแล้ว ↩️")
 
-    # ตรวจสอบกิจกรรมที่มีการอัปโหลด PDF
+    # ตรวจสอบกิจกรรมที่มีการอัปโหลด PDF (เหมือนเดิม)
     for activity in activities:
         if ActivityPDF.objects.filter(activity=activity).exists():
             messages.info(
@@ -1461,81 +1616,84 @@ def homeFacultyStaff(request):
         'registered_students' : activities,
     })
 
+@login_required
+@user_passes_test(is_faculty_staff, login_url='login')
+
+def check_student_list_staff(request, activity_id):
+    activity = get_object_or_404(db_create_activity, id=activity_id)
+    
+    # ดึงรายชื่อนักศึกษาที่ลงทะเบียนเข้าร่วมกิจกรรมนี้
+    students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
+
+    if request.method == 'POST':
+        # ดึงรายชื่อนักศึกษาที่ถูกเลือกจาก checkbox
+        selected_students = request.POST.getlist('student')
+        
+        # อัปเดต is_approved สำหรับนักศึกษาที่ถูกเลือก
+        for student_in_activity in students_in_activity:
+            if str(student_in_activity.student.id) in selected_students:
+                student_in_activity.is_approved = True
+            else:
+                student_in_activity.is_approved = False
+            
+            # อัปเดตสถานะ is_approved โดยไม่ตรวจสอบสถานะการรับสมัคร
+            student_in_activity.save(update_fields=['is_approved'])
+
+        # เปลี่ยนเส้นทางกลับไปที่หน้าแรก
+        return redirect('homeActivity')
+    
+    return render(request, 'FacultyStaff/check_student_list_staff.html', {
+        'activity': activity,
+        'students_in_activity': students_in_activity,
+    })
+
 from django.http import JsonResponse,HttpResponse
 from django.db.models import Count
 
 def dashboard(request):
-    selected_type = request.GET.get('activity_type', '')  # รับค่าที่ผู้ใช้เลือกจาก Dropdown
-    # นับจำนวนการเข้าร่วมกิจกรรมแบ่งตามประเภทกิจกรรม
-    activity_stats = db_create_activity.objects.values('activity_type').annotate(count=Count('id'))
-    activities = db_create_activity.objects.all()
 
-    if selected_type:
-        activities = activities.filter(activity_type=selected_type)
+    return render(request, 'FacultyStaff/dashboard.html'
+    )
 
-    activity_types = db_create_activity.objects.values_list('activity_type', flat=True).distinct()
+def dashboard_admin(request):
 
-    for activity in activities:
-        if activity.max_participants > 0:
-            activity.participation_percentage = (activity.registered_count / activity.max_participants) * 100
-        else:
-            activity.participation_percentage = 0  
-   
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        data = {
-            'activityLabels': [activity.activity_name for activity in activities],
-            'maxParticipantsData': [activity.max_participants for activity in activities],
-            'registeredCountData': [activity.registered_count for activity in activities],
-            'activities': [
-                {
-                    'activity_name': activity.activity_name,
-                    'max_participants': activity.max_participants,
-                    'registered_count': activity.registered_count,
-                    'participation_percentage': activity.participation_percentage,
-                }
-                for activity in activities
-            ]
-        }
-        return JsonResponse(data)
+    return render(request, 'Administrator/dashboard.html'
+    )
 
-    return render(request, 'FacultyStaff/dashboard.html', {
-        'activity_stats': activity_stats,
-        'activities': activities,
-        'activity_types': activity_types,  
-        'selected_type': selected_type,
-    })
-
-# def dashboard_api(request):
-#     activities = db_create_activity.objects.all()
-#     for i in activities:
-#         print("activity_name ",i.activity_name)
-#         print("activity_type ",i.activity_type)
-#         if i.user_faculty_staff != None:
-#             print("---staff---")
-#             print("username ",i.user_faculty_staff.user.username)
-#             print("fname ",i.user_faculty_staff.user.first_name)
-#             print("lname ",i.user_faculty_staff.user.last_name)
-#             print("fact ",i.user_faculty_staff.faculty)
-#         if i.user_person_responsible != None:
-#             print("----responsible-----")
-#             print("username ",i.user_person_responsible.user.username)
-#             print("fname ",i.user_person_responsible.user.first_name)
-#             print("lname ",i.user_person_responsible.user.last_name)
-#             print("fact ",i.user_person_responsible.faculty)
-#         print("หน่วยกิต ",i.credit)
-#         print("จำนวนที่เปิดรับ ",i.max_participants)   
-#         print("ลงทะเบียนจำนวน ",i.registered_count)
-#         print("สถานะ ",i.is_registration_open)
-#         print("อนุมัติ ",i.is_approved)
-#         print("เทอม ",i.semester)
-#         print("เทอม ",i.semester)
-#         print("เทอม ",i.semester)
-#         print('---------------------')
-
-#     return HttpResponse("test")
-
+@login_required
 def dashboard_api(request):
-    activities = db_create_activity.objects.all()
+    # 1. ดึงข้อมูล User Profile และ Filter State
+    activity_type = request.GET.get('activity_type', 'all')
+    user_faculty_staff = None
+    
+    # พยายามดึงโปรไฟล์ของเจ้าหน้าที่ (จำเป็นสำหรับการกรองตามคณะ)
+    try:
+        user_faculty_staff = get_object_or_404(UserFacultyStaff, user=request.user)
+    except:
+        # หากไม่พบโปรไฟล์เจ้าหน้าที่ ให้ถือว่าเป็น None (จะถูกจัดการในเงื่อนไขด้านล่าง)
+        pass 
+        
+    # 2. BASE QUERY FILTERING (Admin Override vs Staff Scope)
+    
+    if request.user.is_superuser:
+        # Admin: แสดงกิจกรรมทั้งหมดของทุกคณะ
+        base_query = db_create_activity.objects.all()
+    elif user_faculty_staff:
+        # Faculty Staff: แสดงกิจกรรมที่ตนเองประกาศ OR กิจกรรมที่ผู้รับผิดชอบอยู่ในคณะเดียวกัน
+        base_query = db_create_activity.objects.filter(
+            Q(user_faculty_staff=user_faculty_staff) | 
+            Q(user_person_responsible__faculty=user_faculty_staff.faculty)
+        )
+    else:
+        # ผู้ใช้ที่ล็อกอินอยู่แต่ไม่มีโปรไฟล์ Staff/Admin (อาจเป็น Student) จะไม่เห็นข้อมูล
+        return JsonResponse({"activities": []}, status=200)
+
+    # 3. SECONDARY FILTERING (Activity Type)
+    if activity_type == 'all':
+        activities = base_query
+    else:
+        activities = base_query.filter(activity_type=activity_type)
+        
     activities_data = []
 
     for i in activities:
@@ -1548,8 +1706,10 @@ def dashboard_api(request):
             "is_registration_open": i.is_registration_open,
             "is_approved": i.is_approved,
             "semester": i.semester,
+            "academic_year": i.academic_year,
         }
 
+        # Serialization: Staff Data
         if i.user_faculty_staff:
             activity_data["staff"] = {
                 "username": i.user_faculty_staff.user.username,
@@ -1560,6 +1720,7 @@ def dashboard_api(request):
         else:
             activity_data["staff"] = None
 
+        # Serialization: Responsible Person Data
         if i.user_person_responsible:
             activity_data["responsible"] = {
                 "username": i.user_person_responsible.user.username,
@@ -1615,18 +1776,46 @@ def dashboard2(request):
         'selected_type': selected_type,
     })
 
-# def approve_credits(request, activity_id):
-#     activity = get_object_or_404(db_create_activity, id=activity_id)
-    
-#     students_in_activity = db_activity_adduser.objects.filter(activity=activity).select_related('student')
-    
-#     for student_in_activity in students_in_activity:
-#         student = student_in_activity.student
-#         student.number_of_credits_available += activity.credit
-#         student.save()
+def dashboard3(request):
+    selected_type = request.GET.get('activity_type', '')  # รับค่าที่ผู้ใช้เลือกจาก Dropdown
+    # นับจำนวนการเข้าร่วมกิจกรรมแบ่งตามประเภทกิจกรรม
+    activity_stats = db_create_activity.objects.values('activity_type').annotate(count=Count('id'))
+    activities = db_create_activity.objects.all()
 
-#     messages.success(request, "นักศึกษาทุกคนได้รับเครดิตเรียบร้อยแล้ว")
-#     return redirect('homeFacultyStaff')
+    if selected_type:
+        activities = activities.filter(activity_type=selected_type)
+
+    activity_types = db_create_activity.objects.values_list('activity_type', flat=True).distinct()
+
+    for activity in activities:
+        if activity.max_participants > 0:
+            activity.participation_percentage = (activity.registered_count / activity.max_participants) * 100
+        else:
+            activity.participation_percentage = 0  
+   
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = {
+            'activityLabels': [activity.activity_name for activity in activities],
+            'maxParticipantsData': [activity.max_participants for activity in activities],
+            'registeredCountData': [activity.registered_count for activity in activities],
+            'activities': [
+                {
+                    'activity_name': activity.activity_name,
+                    'max_participants': activity.max_participants,
+                    'registered_count': activity.registered_count,
+                    'participation_percentage': activity.participation_percentage,
+                }
+                for activity in activities
+            ]
+        }
+        return JsonResponse(data)
+
+    return render(request, 'FacultyStaff/dashboard3.html', {
+        'activity_stats': activity_stats,
+        'activities': activities,
+        'activity_types': activity_types,  
+        'selected_type': selected_type,
+    })
 
 ##########################################################################################
 
@@ -1684,3 +1873,4 @@ def homeAdmin(request):
         'db': user_facultystaff , # ส่งข้อมูลทั้งหมดของ user_facultystaff ไปยัง template
         'faculty_choices': faculty_choices[:]  # 
     })
+
